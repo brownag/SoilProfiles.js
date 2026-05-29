@@ -1,0 +1,47 @@
+{
+  "name": "soilprofiles",
+  "version": "0.1.0",
+  "description": "",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./three3d": {
+      "types": "./dist/render/three3d.d.ts",
+      "require": "./dist/render/three3d.js",
+      "default": "./dist/render/three3d.js"
+    }
+  },
+  "scripts": {
+    "test": "jest",
+    "build": "tsc",
+    "demo:web": "node examples/serve-demo.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "peerDependencies": {
+    "three": "^0.184.0"
+  },
+  "peerDependenciesMeta": {
+    "three": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "@types/node": "^25.9.1",
+    "@types/three": "^0.184.1",
+    "canvas": "^3.2.3",
+    "jest": "^30.4.2",
+    "jest-environment-jsdom": "^30.4.1",
+    "three": "^0.184.0",
+    "ts-jest": "^29.4.11",
+    "typescript": "^6.0.3"
+  }
+}

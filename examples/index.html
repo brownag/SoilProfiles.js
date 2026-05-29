@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>soil-profile-ts Examples</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        .container { border: 1px solid #ccc; width: 800px; height: 500px; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <h1>soil-profile-ts Example</h1>
+    
+    <h2>2D Interactive Canvas</h2>
+    <div id="canvas-container" class="container"></div>
+
+    <h2>3D Stub (Three.js)</h2>
+    <div id="three-container" class="container"></div>
+
+    <h2>Static SVG Render</h2>
+    <div id="svg-container"></div>
+
+    <!-- For demo purposes, we assume a bundled script exists. But here we just use modules if building or placeholder -->
+    <script type="module">
+        import * as THREE from 'https://cdn.skypack.dev/three';
+        // In reality, this would be an import from the dist bundle.
+        // For the sake of the pure HTML example, you would build normally and link dist/index.js.
+        // E.g., import { SoilProfile, SoilProfileCollection, renderInteractive2D, renderInteractive3D, renderStaticSVG } from '../dist/index.js';
+        
+        async function run() {
+            // Placeholder: build the library using esbuild and serve it to test
+            document.getElementById('canvas-container').innerHTML = '<p>Run `npm run build` and include the generated bundle here to view interactive examples.</p>';
+        }
+        
+        run();
+    </script>
+</body>
+</html>
