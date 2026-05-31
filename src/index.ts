@@ -6,6 +6,7 @@ export * from './core/phScale';
 export * from './core/layout';
 export * from './core/colors';
 export * from './core/mapping';
+export * from './core/tooltipUtils';
 export * from './render/static';
 export * from './render/interactive';
 export * from './render/comparison';

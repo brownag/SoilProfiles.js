@@ -71,3 +71,19 @@ export function setTooltipContent(tooltip: HTMLElement, lines: TooltipLine[]): v
     tooltip.appendChild(document.createTextNode(` ${formatDisplayValue(line.value)}`));
   });
 }
+
+export function generateHorizonId(profileId: string, horizonName: string, index: number): string {
+  // Sanitize to only allow safe characters (alphanumeric, underscore, hyphen)
+  const safeName = (str: string) => str.toLowerCase().replace(/[^a-z0-9_-]/g, '_');
+  return `${safeName(profileId)}_hz_${safeName(horizonName)}_${index}`;
+}
+
+export function serializeHorizonData(horizon: any): string {
+  try {
+    // Exclude color field to avoid storing potentially unsafe attribute values
+    const {color, ...safe} = horizon;
+    return JSON.stringify(safe);
+  } catch {
+    return '{}';
+  }
+}

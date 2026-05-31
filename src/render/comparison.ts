@@ -4,8 +4,12 @@ import { isDarkMode, THEMES, getTextColorForBackground, resolveHorizonColor } fr
 import { classifyTexture, getTextureColor } from '../core/texture';
 import { getPhColor } from '../core/phScale';
 import { stackLabels } from '../core/layout';
-import { escapeSvgText, sanitizeColor } from './safety';
+import { escapeSvgText, escapeSvgAttribute, sanitizeColor, generateHorizonId, serializeHorizonData } from './safety';
 import { munsellToHex } from '../core/munsell';
+
+function shouldRenderTitle(tooltipMode: string): boolean {
+  return tooltipMode === 'native' || tooltipMode === undefined;
+}
 
 /**
  * Renders a side-by-side comparison into a DOM container.
@@ -18,7 +22,9 @@ import { munsellToHex } from '../core/munsell';
 export function renderComparisonSVG(profiles: SoilProfileCollection, options: ComparisonRenderOptions): string {
     const isDark = isDarkMode();
     const theme = isDark ? THEMES.dark : THEMES.light;
-    
+    const tooltipMode = options.tooltips?.mode ?? 'native';
+    const showTitle = shouldRenderTitle(tooltipMode);
+
     const profileWidth = options.profileWidth ?? 80;
     const annotationWidth = 55;
     const columnWidth = profileWidth + annotationWidth;
@@ -54,16 +60,18 @@ export function renderComparisonSVG(profiles: SoilProfileCollection, options: Co
     profiles.profiles.forEach((profile, i) => {
         const xOffset = axisWidth + (i * columnWidth);
         svg += `<g transform="translate(${xOffset}, 0)">`;
-        
+
         // Profile ID
         svg += `<text x="${columnWidth / 2}" y="${marginTop - 15}" text-anchor="middle" font-family="Arial" font-size="11" font-weight="bold" fill="${theme.textColor}">${escapeSvgText(profile.id)}</text>`;
-        
+
         const thinHorizons: any[] = [];
 
-        profile.horizons.forEach(hz => {
+        profile.horizons.forEach((hz, hIdx) => {
             const y1 = marginTop + hz.top * depthScale;
             const y2 = marginTop + hz.bottom * depthScale;
             const hHeight = y2 - y1;
+            const horizonId = generateHorizonId(profile.id, hz.name, hIdx);
+            const horizonData = escapeSvgAttribute(serializeHorizonData(hz));
 
             let color = sanitizeColor(hz.color);
             if (mode === 'properties' && hz.ph !== undefined) {
@@ -75,7 +83,11 @@ export function renderComparisonSVG(profiles: SoilProfileCollection, options: Co
                 color = resolveHorizonColor(munsellColor, color);
             }
 
-            svg += `<rect x="0" y="${y1}" width="${profileWidth}" height="${Math.max(hHeight, 1)}" fill="${color}" stroke="#333" stroke-width="0.5" />`;
+            svg += `<rect x="0" y="${y1}" width="${profileWidth}" height="${Math.max(hHeight, 1)}" fill="${color}" stroke="#333" stroke-width="0.5" data-horizon-id="${horizonId}" data-horizon-properties="${horizonData}">`;
+            if (showTitle) {
+              svg += `<title>${escapeSvgText(hz.name)}</title>`;
+            }
+            svg += `</rect>`;
 
             if (hHeight > 12) {
                 svg += `<text x="${profileWidth / 2}" y="${y1 + hHeight / 2}" font-family="Arial" font-size="8" font-weight="bold" fill="${getTextColorForBackground(color)}" text-anchor="middle" dominant-baseline="middle">${escapeSvgText(hz.name)}</text>`;
@@ -92,7 +104,7 @@ export function renderComparisonSVG(profiles: SoilProfileCollection, options: Co
                 svg += `<text x="${profileWidth + 10}" y="${stackedY[i]}" font-family="Arial" font-size="8" fill="${theme.textColor}" dominant-baseline="middle">${escapeSvgText(t.hz.name)}</text>`;
             });
         }
-        
+
         svg += `</g>`;
     });
 
@@ -103,6 +115,56 @@ export function renderComparisonSVG(profiles: SoilProfileCollection, options: Co
 export function renderComparison(container: HTMLElement, profiles: SoilProfileCollection, options: ComparisonRenderOptions): void {
     const html = renderComparisonHTML(profiles, options);
     container.innerHTML = html;
+
+    if (options.onHorizonClick || options.onHorizonHover) {
+        attachHorizonEventListeners(container, profiles, options);
+    }
+}
+
+function attachHorizonEventListeners(container: HTMLElement, profiles: SoilProfileCollection, options: ComparisonRenderOptions): void {
+    const elements = container.querySelectorAll('[data-horizon-properties]');
+
+    elements.forEach(element => {
+        if (!(element instanceof SVGElement)) return;
+
+        const horizonId = element.getAttribute('data-horizon-id');
+        const horizonDataStr = element.getAttribute('data-horizon-properties');
+
+        if (!horizonId || !horizonDataStr) return;
+
+        try {
+            const horizon = JSON.parse(horizonDataStr);
+            const [profileId] = horizonId.split('_');
+
+            if (options.onHorizonClick) {
+                element.addEventListener('click', (event) => {
+                    const rect = (element as SVGElement).getBoundingClientRect();
+                    options.onHorizonClick!({
+                        horizonId,
+                        profileId,
+                        horizon,
+                        event: event as MouseEvent,
+                        position: { x: event.clientX - rect.left, y: event.clientY - rect.top }
+                    });
+                });
+            }
+
+            if (options.onHorizonHover) {
+                element.addEventListener('mouseenter', (event) => {
+                    const rect = (element as SVGElement).getBoundingClientRect();
+                    options.onHorizonHover!({
+                        horizonId,
+                        profileId,
+                        horizon,
+                        event: event as MouseEvent,
+                        position: { x: event.clientX - rect.left, y: event.clientY - rect.top }
+                    });
+                });
+            }
+        } catch {
+            // Skip elements with invalid JSON
+        }
+    });
 }
 
 export function renderComparisonToDataURL(profiles: SoilProfileCollection, options: ComparisonRenderOptions): string {
@@ -160,6 +222,8 @@ export function renderComparisonHTML(profiles: SoilProfileCollection, options: C
             const y1 = marginTop + hz.top * depthScale;
             const y2 = marginTop + hz.bottom * depthScale;
             const hHeight = y2 - y1;
+            const horizonId = generateHorizonId(profile.id, hz.name, idx);
+            const horizonData = escapeSvgAttribute(serializeHorizonData(hz));
 
             let color = sanitizeColor(hz.color);
             if (mode === 'properties' && hz.ph !== undefined) {
@@ -171,7 +235,7 @@ export function renderComparisonHTML(profiles: SoilProfileCollection, options: C
                 color = resolveHorizonColor(munsellColor, color);
             }
 
-            html += `<rect x="0" y="${y1}" width="${profileWidth}" height="${Math.max(hHeight, 1)}" fill="${color}" stroke="#333" stroke-width="0.5">`;
+            html += `<rect x="0" y="${y1}" width="${profileWidth}" height="${Math.max(hHeight, 1)}" fill="${color}" stroke="#333" stroke-width="0.5" data-horizon-id="${horizonId}" data-horizon-properties="${horizonData}">`;
             html += `<title>${escapeSvgText(`${hz.name} (${hz.top}-${hz.bottom}cm)`)}</title>`;
             html += `</rect>`;
 

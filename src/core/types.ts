@@ -3,6 +3,28 @@ export interface TooltipLine {
   value: unknown;
 }
 
+export interface TooltipConfig {
+  properties?: (keyof Horizon)[];
+  customLabels?: Record<string, string>;
+  customFormatters?: Record<string, (value: any) => string>;
+  includeDepth?: boolean;
+}
+
+export interface RenderTooltipOptions {
+  enabled?: boolean;
+  mode?: 'native' | 'custom' | 'data-only';
+  defaultProperties?: string[];
+  positioning?: 'right' | 'left' | 'auto';
+}
+
+export interface HorizonEventPayload {
+  horizonId: string;
+  profileId: string;
+  horizon: Horizon;
+  event: MouseEvent;
+  position: { x: number; y: number };
+}
+
 export interface Horizon {
   top: number;
   bottom: number;
@@ -10,6 +32,7 @@ export interface Horizon {
   color: string;
   texture?: string;
   metadata?: Record<string, any>;
+  tooltipConfig?: TooltipConfig;
 
   // Standardized soil properties
   clay?: number;    // clay percentage
@@ -51,12 +74,20 @@ export interface StaticRenderOptions {
   height: number;
   format: 'png' | 'svg';
   mode?: RenderMode;
+  tooltips?: RenderTooltipOptions;
+  onHorizonHover?: (payload: HorizonEventPayload) => void;
+  onHorizonClick?: (payload: HorizonEventPayload) => void;
+  tooltipRenderer?: (horizon: Horizon) => HTMLElement;
 }
 
 export interface InteractiveRenderOptions {
   interactive: boolean;
   arrangement: '2d' | '3d';
   mode?: RenderMode;
+  tooltips?: RenderTooltipOptions;
+  onHorizonHover?: (payload: HorizonEventPayload) => void;
+  onHorizonClick?: (payload: HorizonEventPayload) => void;
+  tooltipRenderer?: (horizon: Horizon) => HTMLElement;
 }
 
 export interface ComparisonRenderOptions extends StaticRenderOptions {

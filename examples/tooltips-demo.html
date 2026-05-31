@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SoilProfiles.js - Tooltip System Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+
+        .subtitle {
+            color: #7f8c8d;
+            margin-bottom: 30px;
+        }
+
+        .demo-section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .demo-section h2 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #34495e;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+
+        .demo-content {
+            position: relative;
+            border: 1px solid #ecf0f1;
+            border-radius: 4px;
+            padding: 10px;
+            min-height: 300px;
+            background: #fafafa;
+        }
+
+        .svg-container {
+            width: 100%;
+            max-width: 800px;
+        }
+
+        svg {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .info-box {
+            background: #ecf0f1;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .code-block {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            margin: 10px 0;
+        }
+
+        .event-log {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 15px;
+        }
+
+        .event-log-item {
+            padding: 5px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .event-log-item:last-child {
+            border-bottom: none;
+        }
+
+        .event-log-time {
+            color: #6c757d;
+        }
+
+        .event-log-text {
+            color: #212529;
+        }
+
+        .control-section {
+            margin: 15px 0;
+            padding: 10px;
+            background: #e8f4f8;
+            border-radius: 4px;
+        }
+
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 10px;
+            margin-top: 5px;
+        }
+
+        button:hover {
+            background: #2980b9;
+        }
+
+        button:active {
+            transform: translateY(1px);
+        }
+
+        label {
+            display: block;
+            margin: 10px 0 5px 0;
+            font-weight: 500;
+        }
+
+        select, input {
+            padding: 8px;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+            font-size: 14px;
+            margin-right: 10px;
+        }
+
+        .custom-tooltip {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px;
+            border-radius: 4px;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            font-weight: 500;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            .demo-section {
+                padding: 15px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌱 SoilProfiles.js - Tooltip & Metadata System</h1>
+        <p class="subtitle">Interactive demonstrations of the tooltip and event callback features</p>
+
+        <!-- Demo 1: Native Tooltips -->
+        <div class="demo-section">
+            <h2>1. Native SVG Tooltips (Default)</h2>
+            <div class="info-box">
+                <strong>Mode:</strong> 'native' (default)<br>
+                <strong>Behavior:</strong> Standard SVG &lt;title&gt; elements. Hover over horizons to see browser tooltips.<br>
+                <strong>Use case:</strong> Quick, minimal tooltips without custom styling.
+            </div>
+            <div class="demo-content">
+                <div id="demo1-native" class="svg-container"></div>
+            </div>
+            <div class="code-block">renderStaticToDOM(el, collection, {
+  mode: 'depth',
+  width: 400,
+  height: 300,
+  tooltips: { mode: 'native' }  // or omit for default
+});</div>
+        </div>
+
+        <!-- Demo 2: Custom Tooltips with Events -->
+        <div class="demo-section">
+            <h2>2. Custom Tooltips with Event Handlers</h2>
+            <div class="info-box">
+                <strong>Mode:</strong> 'custom'<br>
+                <strong>Behavior:</strong> Suppresses native tooltips, fires callbacks on hover/click with rich payload.<br>
+                <strong>Use case:</strong> Rich, styled tooltips; detailed analytics; complex interactions.
+            </div>
+            <div class="demo-content">
+                <div id="demo2-custom" class="svg-container"></div>
+                <div style="margin-top: 15px;">
+                    <strong>Last Event:</strong>
+                    <div id="demo2-event" style="padding: 10px; background: white; border: 1px solid #ddd; border-radius: 4px; margin-top: 5px; font-family: monospace; font-size: 12px; min-height: 40px;">
+                        (hover/click a horizon to see event details)
+                    </div>
+                </div>
+            </div>
+            <div class="code-block">renderStaticToDOM(el, collection, {
+  mode: 'depth',
+  width: 400,
+  height: 300,
+  tooltips: { mode: 'custom' },
+  onHorizonHover: (payload) => {
+    console.log('Hovered:', payload.horizon.name);
+  },
+  onHorizonClick: (payload) => {
+    console.log('Clicked:', payload.horizon.name);
+  }
+});</div>
+        </div>
+
+        <!-- Demo 3: Custom Tooltip Rendering -->
+        <div class="demo-section">
+            <h2>3. Custom Tooltip Rendering</h2>
+            <div class="info-box">
+                <strong>Mode:</strong> 'custom'<br>
+                <strong>Behavior:</strong> Uses custom tooltipRenderer function to render styled HTML tooltips.<br>
+                <strong>Use case:</strong> Branded tooltips; rich HTML content; complex layouts.
+            </div>
+            <div class="demo-content">
+                <div id="demo3-custom-render" class="svg-container"></div>
+            </div>
+            <div class="code-block">const customRenderer = (horizon) => {
+  const div = document.createElement('div');
+  div.className = 'custom-tooltip';
+  div.innerHTML = `
+    &lt;div&gt;${horizon.name}&lt;/div&gt;
+    &lt;div&gt;${horizon.top}-${horizon.bottom}cm deep&lt;/div&gt;
+  `;
+  return div;
+};
+
+renderStaticToDOM(el, collection, {
+  tooltips: { mode: 'custom' },
+  tooltipRenderer: customRenderer
+});</div>
+        </div>
+
+        <!-- Demo 4: Data-Only Mode -->
+        <div class="demo-section">
+            <h2>4. Data-Only Mode (No Native Tooltips)</h2>
+            <div class="info-box">
+                <strong>Mode:</strong> 'data-only'<br>
+                <strong>Behavior:</strong> Suppresses native &lt;title&gt; elements. Horizon data available via data attributes.<br>
+                <strong>Use case:</strong> Advanced consumers who parse data attributes programmatically.
+            </div>
+            <div class="demo-content">
+                <div id="demo4-data-only" class="svg-container"></div>
+                <div style="margin-top: 15px;">
+                    <button onclick="inspectDataAttributes()">Inspect Data Attributes</button>
+                    <div id="demo4-attributes" style="padding: 10px; background: white; border: 1px solid #ddd; border-radius: 4px; margin-top: 5px; font-family: monospace; font-size: 12px; max-height: 150px; overflow-y: auto;">
+                        (Click button to inspect)
+                    </div>
+                </div>
+            </div>
+            <div class="code-block">renderStaticToDOM(el, collection, {
+  mode: 'depth',
+  tooltips: { mode: 'data-only' }
+});</div>
+        </div>
+
+        <!-- Demo 5: Comparison Tooltips -->
+        <div class="demo-section">
+            <h2>5. Comparison View with Tooltips</h2>
+            <div class="info-box">
+                <strong>Mode:</strong> 'custom'<br>
+                <strong>Behavior:</strong> Side-by-side profiles with event callbacks on each horizon.<br>
+                <strong>Use case:</strong> Comparing multiple soil profiles.
+            </div>
+            <div class="demo-content">
+                <div id="demo5-comparison" style="width: 100%; min-height: 400px;"></div>
+            </div>
+            <div class="code-block">renderComparison(el, collection, {
+  mode: 'depth',
+  height: 400,
+  tooltips: { mode: 'custom' },
+  onHorizonClick: (payload) => {
+    console.log(`Clicked horizon in ${payload.profileId}`);
+  }
+});</div>
+        </div>
+
+        <!-- Demo 6: Utility Functions -->
+        <div class="demo-section">
+            <h2>6. Utility Functions</h2>
+            <div class="info-box">
+                <strong>Available utilities:</strong>
+                <ul style="margin-top: 10px; margin-left: 20px;">
+                    <li><code>formatHorizonProperties()</code> - Format properties with custom labels/formatters</li>
+                    <li><code>createDefaultTooltip()</code> - Create styled HTML tooltip</li>
+                    <li><code>getHorizonDataFromElement()</code> - Parse data from SVG element</li>
+                    <li><code>createTooltipLines()</code> - Create lines for legacy tooltip system</li>
+                </ul>
+            </div>
+            <div class="demo-content">
+                <div class="control-section">
+                    <button onclick="demonstrateUtilities()">Run Utility Functions</button>
+                </div>
+                <div id="demo6-output" style="padding: 10px; background: white; border: 1px solid #ddd; border-radius: 4px; margin-top: 10px; font-family: monospace; font-size: 12px;">
+                    (Click button to see utility output)
+                </div>
+            </div>
+            <div class="code-block">import { formatHorizonProperties, createDefaultTooltip } from 'soilprofiles';
+
+// Format properties
+const props = formatHorizonProperties(horizon, {
+  properties: ['name', 'depth', 'clay', 'ph'],
+  customLabels: { clay: 'Clay %' },
+  customFormatters: { ph: (v) => v.toFixed(1) }
+});
+
+// Create tooltip
+const tooltip = createDefaultTooltip(horizon, {
+  className: 'my-tooltip',
+  properties: ['name', 'depth', 'texture']
+});
+document.body.appendChild(tooltip);</div>
+        </div>
+    </div>
+
+    <script type="module">
+        import {
+            SoilProfile,
+            SoilProfileCollection,
+            renderStaticToDOM,
+            renderComparison,
+            formatHorizonProperties,
+            createDefaultTooltip,
+            getHorizonDataFromElement,
+            createTooltipLines
+        } from '../dist/index.js';
+
+        // Sample data
+        const sampleProfiles = new SoilProfileCollection([
+            new SoilProfile('Profile A', [
+                {
+                    top: 0,
+                    bottom: 10,
+                    name: 'Ap',
+                    color: '#8b7355',
+                    clay: 18,
+                    sand: 45,
+                    silt: 37,
+                    ph: 6.8,
+                    om: 2.5,
+                    ksat: 2.5
+                },
+                {
+                    top: 10,
+                    bottom: 30,
+                    name: 'E',
+                    color: '#a0a0a0',
+                    clay: 12,
+                    sand: 60,
+                    silt: 28,
+                    ph: 5.9,
+                    om: 0.8,
+                    ksat: 5.0
+                },
+                {
+                    top: 30,
+                    bottom: 60,
+                    name: 'Bt',
+                    color: '#d4a574',
+                    clay: 35,
+                    sand: 32,
+                    silt: 33,
+                    ph: 5.5,
+                    om: 0.3,
+                    ksat: 0.5
+                }
+            ]),
+            new SoilProfile('Profile B', [
+                {
+                    top: 0,
+                    bottom: 15,
+                    name: 'Ap',
+                    color: '#8b6f47',
+                    clay: 22,
+                    sand: 40,
+                    silt: 38,
+                    ph: 7.2,
+                    om: 3.2,
+                    ksat: 3.0
+                },
+                {
+                    top: 15,
+                    bottom: 40,
+                    name: 'A',
+                    color: '#a0826d',
+                    clay: 20,
+                    sand: 45,
+                    silt: 35,
+                    ph: 7.1,
+                    om: 1.5,
+                    ksat: 4.0
+                }
+            ])
+        ]);
+
+        // Demo 1: Native tooltips
+        renderStaticToDOM(document.getElementById('demo1-native'), sampleProfiles, {
+            mode: 'depth',
+            width: 400,
+            height: 300,
+            tooltips: { mode: 'native' }
+        });
+
+        // Demo 2: Custom tooltips with events
+        renderStaticToDOM(document.getElementById('demo2-custom'), sampleProfiles, {
+            mode: 'depth',
+            width: 400,
+            height: 300,
+            tooltips: { mode: 'custom' },
+            onHorizonHover: (payload) => {
+                const eventEl = document.getElementById('demo2-event');
+                eventEl.textContent = `
+Hover Event:
+  Profile: ${payload.profileId}
+  Horizon: ${payload.horizon.name}
+  Depth: ${payload.horizon.top}-${payload.horizon.bottom}cm
+  Clay: ${payload.horizon.clay}%
+  pH: ${payload.horizon.ph}`;
+            },
+            onHorizonClick: (payload) => {
+                const eventEl = document.getElementById('demo2-event');
+                eventEl.style.background = '#e8f5e9';
+                eventEl.textContent = `
+Click Event:
+  Profile: ${payload.profileId}
+  Horizon: ${payload.horizon.name}
+  Depth: ${payload.horizon.top}-${payload.horizon.bottom}cm
+  Position: (${Math.round(payload.position.x)}, ${Math.round(payload.position.y)})`;
+            }
+        });
+
+        // Demo 3: Custom tooltip renderer
+        const customTooltip = (horizon) => {
+            const div = document.createElement('div');
+            div.style.cssText = `
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                padding: 12px;
+                border-radius: 4px;
+                max-width: 200px;
+                box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            `;
+            div.innerHTML = `
+                <div style="font-weight: bold; margin-bottom: 8px;">${horizon.name} Horizon</div>
+                <div style="font-size: 12px; line-height: 1.6;">
+                    <div>Depth: ${horizon.top}-${horizon.bottom} cm</div>
+                    ${horizon.clay ? `<div>Clay: ${horizon.clay}%</div>` : ''}
+                    ${horizon.ph ? `<div>pH: ${horizon.ph.toFixed(1)}</div>` : ''}
+                </div>
+            `;
+            return div;
+        };
+
+        renderStaticToDOM(document.getElementById('demo3-custom-render'), sampleProfiles, {
+            mode: 'depth',
+            width: 400,
+            height: 300,
+            tooltips: { mode: 'custom' },
+            tooltipRenderer: customTooltip
+        });
+
+        // Demo 4: Data-only mode
+        renderStaticToDOM(document.getElementById('demo4-data-only'), sampleProfiles, {
+            mode: 'depth',
+            width: 400,
+            height: 300,
+            tooltips: { mode: 'data-only' }
+        });
+
+        window.inspectDataAttributes = () => {
+            const container = document.getElementById('demo4-data-only');
+            const elements = container.querySelectorAll('[data-horizon-properties]');
+            let output = `Found ${elements.length} horizon elements:\n\n`;
+
+            elements.forEach((el, idx) => {
+                const id = el.getAttribute('data-horizon-id');
+                const data = JSON.parse(el.getAttribute('data-horizon-properties'));
+                output += `${idx + 1}. ${id}\n`;
+                output += `   Name: ${data.name}\n`;
+                output += `   Depth: ${data.top}-${data.bottom}cm\n`;
+                if (data.clay) output += `   Clay: ${data.clay}%\n`;
+                output += '\n';
+            });
+
+            document.getElementById('demo4-attributes').textContent = output;
+        };
+
+        // Demo 5: Comparison
+        renderComparison(document.getElementById('demo5-comparison'), sampleProfiles, {
+            mode: 'depth',
+            height: 400,
+            tooltips: { mode: 'custom' },
+            onHorizonClick: (payload) => {
+                console.log(`Clicked ${payload.profileId} - ${payload.horizon.name}`);
+                alert(`Clicked horizon: ${payload.horizon.name} in ${payload.profileId}`);
+            }
+        });
+
+        // Demo 6: Utilities
+        window.demonstrateUtilities = () => {
+            const horizon = sampleProfiles.profiles[0].horizons[0];
+
+            // Format properties
+            const props = formatHorizonProperties(horizon, {
+                properties: ['name', 'depth', 'clay', 'sand', 'ph', 'om'],
+                customLabels: { clay: 'Clay %', om: 'Organic Matter' },
+                customFormatters: { ph: v => v.toFixed(1), clay: v => v + '%' }
+            });
+
+            let output = '1. formatHorizonProperties() output:\n';
+            props.forEach(p => {
+                output += `   ${p.label}: ${p.value}\n`;
+            });
+
+            // Create tooltip
+            const tooltip = createDefaultTooltip(horizon, {
+                properties: ['name', 'depth', 'clay', 'ph'],
+                customLabels: { clay: 'Clay Content' }
+            });
+
+            output += '\n2. createDefaultTooltip() HTML:\n';
+            output += '   ' + tooltip.outerHTML.substring(0, 100) + '...\n';
+
+            // Create tooltip lines
+            const lines = createTooltipLines(horizon, {
+                properties: ['name', 'depth', 'clay', 'ph']
+            });
+
+            output += '\n3. createTooltipLines() output:\n';
+            lines.forEach(line => {
+                output += `   ${line.label}: ${line.value}\n`;
+            });
+
+            document.getElementById('demo6-output').textContent = output;
+            document.getElementById('demo6-output').style.whiteSpace = 'pre-wrap';
+        };
+    </script>
+</body>
+</html>

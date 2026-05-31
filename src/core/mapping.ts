@@ -15,6 +15,7 @@ export function mapToHorizon(raw: any, map: PropertyMap = {}): Horizon {
     color: String(raw.color || '#cccccc'),
     texture: raw.texture,
     metadata: { ...raw },
+    tooltipConfig: raw.tooltipConfig,
 
     clay: (raw[map.clay || 'claytotal_r'] ?? raw.clay) ?? undefined,
     sand: (raw[map.sand || 'sandtotal_r'] ?? raw.sand) ?? undefined,

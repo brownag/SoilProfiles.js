@@ -60,7 +60,7 @@ export function renderInteractive2D(container: HTMLElement, profiles: SoilProfil
     : Math.max(20, (width - padding * 2) / Math.max(1, profiles.profiles.length) - 20);
 
   // precalculate drawing regions for hit testing (hovers)
-  type HitRegion = { x: number, y: number, w: number, h: number, tooltipLines: TooltipLine[] };
+  type HitRegion = { x: number, y: number, w: number, h: number, tooltipLines: TooltipLine[], horizon?: any, profileId?: string };
   const hitRegions: HitRegion[] = [];
 
   // Draw background
@@ -160,7 +160,9 @@ export function renderInteractive2D(container: HTMLElement, profiles: SoilProfil
         y: yOffset,
         w: profileWidth,
         h: hHeight,
-        tooltipLines
+        tooltipLines,
+        horizon,
+        profileId: profile.id
       });
 
       // Label
@@ -185,6 +187,8 @@ export function renderInteractive2D(container: HTMLElement, profiles: SoilProfil
   });
 
   if (options.interactive) {
+    let lastHoveredRegion: (typeof hitRegions)[0] | null = null;
+
     canvas.addEventListener('mousemove', (e) => {
       const rect = canvas.getBoundingClientRect();
       const mouseX = e.clientX - rect.left;
@@ -195,6 +199,20 @@ export function renderInteractive2D(container: HTMLElement, profiles: SoilProfil
         if (mouseX >= region.x && mouseX <= region.x + region.w &&
             mouseY >= region.y && mouseY <= region.y + region.h) {
           hovered = true;
+
+          if (lastHoveredRegion !== region) {
+            if (options.onHorizonHover && region.horizon && region.profileId) {
+              options.onHorizonHover({
+                horizonId: `${region.profileId}_hz_${region.horizon.name.toLowerCase()}`,
+                profileId: region.profileId,
+                horizon: region.horizon,
+                event: e,
+                position: { x: mouseX, y: mouseY }
+              });
+            }
+            lastHoveredRegion = region;
+          }
+
           setTooltipContent(tooltip, region.tooltipLines);
           tooltip.style.left = (mouseX + 15) + 'px';
           tooltip.style.top = (mouseY + 15) + 'px';
@@ -205,11 +223,37 @@ export function renderInteractive2D(container: HTMLElement, profiles: SoilProfil
 
       if (!hovered) {
         tooltip.style.opacity = '0';
+        lastHoveredRegion = null;
+      }
+    });
+
+    canvas.addEventListener('click', (e) => {
+      if (!options.onHorizonClick) return;
+
+      const rect = canvas.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+
+      for (const region of hitRegions) {
+        if (mouseX >= region.x && mouseX <= region.x + region.w &&
+            mouseY >= region.y && mouseY <= region.y + region.h) {
+          if (region.horizon && region.profileId) {
+            options.onHorizonClick({
+              horizonId: `${region.profileId}_hz_${region.horizon.name.toLowerCase()}`,
+              profileId: region.profileId,
+              horizon: region.horizon,
+              event: e,
+              position: { x: mouseX, y: mouseY }
+            });
+          }
+          break;
+        }
       }
     });
 
     canvas.addEventListener('mouseleave', () => {
         tooltip.style.opacity = '0';
+        lastHoveredRegion = null;
     });
   }
 }
