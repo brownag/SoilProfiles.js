@@ -92,4 +92,6 @@ export interface InteractiveRenderOptions {
 
 export interface ComparisonRenderOptions extends StaticRenderOptions {
   profileWidth?: number;
+  centered?: boolean;
+  profileMaxWidth?: number;
 }

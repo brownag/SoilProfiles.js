@@ -190,6 +190,9 @@ export function renderComparisonHTML(profiles: SoilProfileCollection, options: C
     const profileHeight = options.height ?? 400;
     const maxDepth = profiles.getMaxDepth() || 100;
     const depthScale = (profileHeight - marginTop - marginBottom) / maxDepth;
+    
+    const centered = options.centered !== false;
+    const profileMaxWidth = options.profileMaxWidth;
 
     let html = `<div style="display:flex; width:100%; height:${profileHeight}px; background:${theme.bgColor}; overflow-y:auto;">`;
 
@@ -208,10 +211,19 @@ export function renderComparisonHTML(profiles: SoilProfileCollection, options: C
     html += `</div>`;
 
     // Right: Scrollable profiles
-    html += `<div style="flex:1; overflow-x:auto; display:flex; background:${theme.bgColor};">`;
+    let profilesContainerStyle = `flex:1; overflow-x:auto; display:flex; background:${theme.bgColor};`;
+    if (centered) {
+        profilesContainerStyle += `justify-content:center;`;
+    }
+
+    html += `<div style="${profilesContainerStyle}">`;
 
     profiles.profiles.forEach(profile => {
-        html += `<div style="flex:0 0 ${columnWidth}px; position:relative; border-left:1px solid ${theme.gridColor};">`;
+        let colStyle = `flex:0 0 ${columnWidth}px; position:relative; border-left:1px solid ${theme.gridColor};`;
+        if (profileMaxWidth) {
+            colStyle += `max-width:${profileMaxWidth}px;`;
+        }
+        html += `<div style="${colStyle}">`;
         html += `<div style="position:absolute; top:2px; left:2px; right:2px; font-size:10px; font-weight:bold; text-align:center; color:${theme.textColor}; z-index:10; background:${theme.bgColor};">${escapeSvgText(profile.id)}</div>`;
 
         html += `<svg viewBox="0 0 ${columnWidth} ${profileHeight}" style="width:100%; height:${profileHeight}px; margin-top:18px;">`;

@@ -262,4 +262,31 @@ describe('Rendering', () => {
         // Munsell 5R 5/6 should produce a different color
         expect(svg).toContain('fill="#');
     });
+
+    describe('Profile Centering', () => {
+        const centeringCol = new SoilProfileCollection([
+            new SoilProfile('p1', [{ name: 'A', top: 0, bottom: 50, color: 'red' }]),
+            new SoilProfile('p2', [{ name: 'B', top: 0, bottom: 50, color: 'blue' }])
+        ]);
+
+        const defaultOptions = { width: 800, height: 400, format: 'svg' as const };
+
+        it('centers profiles by default', () => {
+            const div = document.createElement('div');
+            renderComparison(div, centeringCol, { ...defaultOptions });
+            expect(div.innerHTML).toContain('justify-content:center');
+        });
+
+        it('can disable centering', () => {
+            const div = document.createElement('div');
+            renderComparison(div, centeringCol, { ...defaultOptions, centered: false });
+            expect(div.innerHTML).not.toContain('justify-content:center');
+        });
+
+        it('applies profileMaxWidth when provided', () => {
+            const div = document.createElement('div');
+            renderComparison(div, centeringCol, { ...defaultOptions, profileMaxWidth: 200 });
+            expect(div.innerHTML).toContain('max-width:200px');
+        });
+    });
 });
