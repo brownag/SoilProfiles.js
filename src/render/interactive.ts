@@ -3,7 +3,8 @@ import { InteractiveRenderOptions, TooltipLine } from '../core/types';
 import { sanitizeColor, setTooltipContent } from './safety';
 import { classifyTexture, getTextureColor } from '../core/texture';
 import { getPhColor } from '../core/phScale';
-import { isDarkMode, THEMES, getTextColorForBackground } from '../core/colors';
+import { isDarkMode, THEMES, getTextColorForBackground, resolveHorizonColor } from '../core/colors';
+import { munsellToHex } from '../core/munsell';
 
 export function renderInteractive2D(container: HTMLElement, profiles: SoilProfileCollection, options: InteractiveRenderOptions): void {
   const width = container.clientWidth || 800;
@@ -102,12 +103,15 @@ export function renderInteractive2D(container: HTMLElement, profiles: SoilProfil
       const hHeight = (horizon.bottom - horizon.top) * depthScale;
 
       let color = sanitizeColor(horizon.color);
-      
+
       if (mode === 'properties' && horizon.ph !== undefined) {
         color = getPhColor(horizon.ph);
       } else if (horizon.clay !== undefined && mode !== 'thumbnail') {
         const textureClass = classifyTexture(horizon);
         color = getTextureColor(textureClass);
+      } else if ((mode === 'depth' || mode === 'thumbnail') && !horizon.clay) {
+        const munsellColor = munsellToHex(horizon.munsellHue, horizon.munsellValue, horizon.munsellChroma);
+        color = resolveHorizonColor(munsellColor, color);
       }
 
       ctx.fillStyle = color;

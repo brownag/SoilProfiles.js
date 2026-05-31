@@ -1,11 +1,21 @@
 const DIST_ENTRY_MODULES = [
   'index.js',
   'core/types.js',
+  'core/colors.js',
+  'core/layout.js',
+  'core/mapping.js',
+  'core/munsell.js',
+  'core/phScale.js',
+  'core/texture.js',
+  'core/tooltipUtils.js',
   'core/SoilProfile.js',
   'core/SoilProfileCollection.js',
   'render/safety.js',
   'render/static.js',
-  'render/interactive.js'
+  'render/interactive.js',
+  'render/comparison.js',
+  'render/three3d.js',
+  'utils/munsell-approx.js'
 ];
 
 const SERIES_NAMES = [

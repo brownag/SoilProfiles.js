@@ -18,6 +18,11 @@ export interface Horizon {
   ph?: number;      // pH (1:1 water)
   om?: number;       // organic matter %
   ksat?: number;     // saturated hydraulic conductivity
+
+  // Munsell color system
+  munsellHue?: string;    // e.g., "10YR", "5R"
+  munsellValue?: number;  // Value component (0-10)
+  munsellChroma?: number; // Chroma component
 }
 
 export interface PropertyMap {
@@ -28,6 +33,9 @@ export interface PropertyMap {
   om?: string;
   ksat?: string;
   name?: string;
+  munsellHue?: string;
+  munsellValue?: string;
+  munsellChroma?: string;
 }
 
 export interface Position {

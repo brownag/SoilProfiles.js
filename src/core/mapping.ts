@@ -15,13 +15,17 @@ export function mapToHorizon(raw: any, map: PropertyMap = {}): Horizon {
     color: String(raw.color || '#cccccc'),
     texture: raw.texture,
     metadata: { ...raw },
-    
+
     clay: (raw[map.clay || 'claytotal_r'] ?? raw.clay) ?? undefined,
     sand: (raw[map.sand || 'sandtotal_r'] ?? raw.sand) ?? undefined,
     silt: (raw[map.silt || 'silttotal_r'] ?? raw.silt) ?? undefined,
     ph: (raw[map.ph || 'ph1to1h2o_r'] ?? raw.ph) ?? undefined,
     om: (raw[map.om || 'om_r'] ?? raw.om) ?? undefined,
-    ksat: (raw[map.ksat || 'ksat_r'] ?? raw.ksat) ?? undefined
+    ksat: (raw[map.ksat || 'ksat_r'] ?? raw.ksat) ?? undefined,
+
+    munsellHue: (raw[map.munsellHue || 'moist_hue'] ?? raw.munsellHue) ?? undefined,
+    munsellValue: (raw[map.munsellValue || 'moist_value'] ?? raw.munsellValue) ?? undefined,
+    munsellChroma: (raw[map.munsellChroma || 'moist_chroma'] ?? raw.munsellChroma) ?? undefined
   };
 }
 
@@ -36,6 +40,9 @@ export const DATA_MAPS = {
     ph: 'ph1to1h2o_r',
     om: 'om_r',
     ksat: 'ksat_r',
-    name: 'hzname'
+    name: 'hzname',
+    munsellHue: 'moist_hue',
+    munsellValue: 'moist_value',
+    munsellChroma: 'moist_chroma'
   }
 };

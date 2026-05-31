@@ -53,3 +53,23 @@ export const THEMES = {
     dimColor: '#666666'
   }
 };
+
+/**
+ * Resolves the display color for a horizon with proper priority:
+ * 1. Texture/properties mode colors (handled by caller)
+ * 2. Munsell color if valid
+ * 3. Fallback to horizon.color
+ *
+ * @param munsellColor Calculated Munsell hex color or null
+ * @param fallbackColor Default color if Munsell is not available
+ * @returns Resolved hex color string
+ */
+export function resolveHorizonColor(
+  munsellColor: string | null,
+  fallbackColor: string
+): string {
+  if (munsellColor) {
+    return munsellColor;
+  }
+  return fallbackColor;
+}

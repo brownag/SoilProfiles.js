@@ -1,10 +1,11 @@
 import { SoilProfileCollection } from '../core/SoilProfileCollection';
 import { ComparisonRenderOptions } from '../core/types';
-import { isDarkMode, THEMES, getTextColorForBackground } from '../core/colors';
+import { isDarkMode, THEMES, getTextColorForBackground, resolveHorizonColor } from '../core/colors';
 import { classifyTexture, getTextureColor } from '../core/texture';
 import { getPhColor } from '../core/phScale';
 import { stackLabels } from '../core/layout';
 import { escapeSvgText, sanitizeColor } from './safety';
+import { munsellToHex } from '../core/munsell';
 
 /**
  * Renders a side-by-side comparison into a DOM container.
@@ -69,6 +70,9 @@ export function renderComparisonSVG(profiles: SoilProfileCollection, options: Co
                 color = getPhColor(hz.ph);
             } else if (hz.clay !== undefined) {
                 color = getTextureColor(classifyTexture(hz));
+            } else {
+                const munsellColor = munsellToHex(hz.munsellHue, hz.munsellValue, hz.munsellChroma);
+                color = resolveHorizonColor(munsellColor, color);
             }
 
             svg += `<rect x="0" y="${y1}" width="${profileWidth}" height="${Math.max(hHeight, 1)}" fill="${color}" stroke="#333" stroke-width="0.5" />`;
@@ -162,6 +166,9 @@ export function renderComparisonHTML(profiles: SoilProfileCollection, options: C
                 color = getPhColor(hz.ph);
             } else if (hz.clay !== undefined) {
                 color = getTextureColor(classifyTexture(hz));
+            } else {
+                const munsellColor = munsellToHex(hz.munsellHue, hz.munsellValue, hz.munsellChroma);
+                color = resolveHorizonColor(munsellColor, color);
             }
 
             html += `<rect x="0" y="${y1}" width="${profileWidth}" height="${Math.max(hHeight, 1)}" fill="${color}" stroke="#333" stroke-width="0.5">`;

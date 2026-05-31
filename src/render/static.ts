@@ -3,7 +3,8 @@ import { StaticRenderOptions, Horizon, RenderMode } from '../core/types';
 import { escapeSvgAttribute, escapeSvgText, finiteNumber, sanitizeColor } from './safety';
 import { classifyTexture, getTextureColor } from '../core/texture';
 import { getPhColor, clampPh } from '../core/phScale';
-import { isDarkMode, THEMES, getTextColorForBackground } from '../core/colors';
+import { isDarkMode, THEMES, getTextColorForBackground, resolveHorizonColor } from '../core/colors';
+import { munsellToHex } from '../core/munsell';
 
 export function renderStaticSVG(profiles: SoilProfileCollection, options: StaticRenderOptions): string {
     const width = finiteNumber(options.width, 800);
@@ -42,7 +43,7 @@ function renderThumbnailMode(profiles: SoilProfileCollection, width: number, hei
     const depthScale = (height - padding * 2) / maxDepth;
     const profileCount = Math.max(1, profiles.profiles.length);
     const profileWidth = (width - padding * 2) / profileCount;
-    
+
     let svg = '';
 
     profiles.profiles.forEach((profile, i) => {
@@ -51,17 +52,20 @@ function renderThumbnailMode(profiles: SoilProfileCollection, width: number, hei
         profile.horizons.forEach(horizon => {
             const hTop = padding + (horizon.top * depthScale);
             const hHeight = (horizon.bottom - horizon.top) * depthScale;
-            
+
             let color = sanitizeColor(horizon.color);
             if (horizon.clay !== undefined) {
                 color = getTextureColor(classifyTexture(horizon));
+            } else {
+                const munsellColor = munsellToHex(horizon.munsellHue, horizon.munsellValue, horizon.munsellChroma);
+                color = resolveHorizonColor(munsellColor, color);
             }
             const textColor = getTextColorForBackground(color);
 
             svg += `<rect x="${xOffset}" y="${hTop}" width="${profileWidth}" height="${hHeight}" fill="${escapeSvgAttribute(color)}" stroke="none">`;
             svg += `<title>${escapeSvgText(`${horizon.name} (${horizon.top}-${horizon.bottom}cm)`)}</title>`;
             svg += `</rect>`;
-            
+
             // Labels inside, only if there's space
             if (hHeight > 8) {
                 const fontSize = Math.min(24, Math.floor(hHeight * 0.8));
@@ -69,7 +73,7 @@ function renderThumbnailMode(profiles: SoilProfileCollection, width: number, hei
             }
         });
     });
-    
+
     return svg;
 }
 
@@ -78,41 +82,44 @@ function renderDepthMode(profiles: SoilProfileCollection, width: number, height:
     const maxDepth = profiles.getMaxDepth() || 100;
     const depthScale = (height - padding * 2) / maxDepth;
     const profileWidth = Math.max(20, (width - padding * 2) / Math.max(1, profiles.profiles.length) - 20);
-    
+
     let svg = '';
-    
+
     // Draw depth scale
     svg += drawDepthScale(padding, maxDepth, depthScale, width, height, theme);
 
     profiles.profiles.forEach((profile, i) => {
         const xOffset = padding + (i * (profileWidth + 20));
-        
+
         // Profile ID text
         svg += `<text x="${xOffset + profileWidth / 2}" y="${padding - 10}" font-family="Arial" font-size="12" font-weight="bold" text-anchor="middle" fill="${theme.textColor}">${escapeSvgText(profile.id)}</text>`;
 
         profile.horizons.forEach(horizon => {
             const hTop = padding + (horizon.top * depthScale);
             const hHeight = (horizon.bottom - horizon.top) * depthScale;
-            
-            // Determine color: use provided color or classify texture
+
+            // Determine color: texture > munsell > fallback
             let color = sanitizeColor(horizon.color);
             if (horizon.clay !== undefined) {
                 const textureClass = classifyTexture(horizon);
                 color = getTextureColor(textureClass);
+            } else {
+                const munsellColor = munsellToHex(horizon.munsellHue, horizon.munsellValue, horizon.munsellChroma);
+                color = resolveHorizonColor(munsellColor, color);
             }
-            
+
             const textColor = getTextColorForBackground(color);
 
             svg += `<rect x="${xOffset}" y="${hTop}" width="${profileWidth}" height="${hHeight}" fill="${escapeSvgAttribute(color)}" stroke="#333" stroke-width="1">`;
             svg += `<title>${escapeSvgText(`${horizon.name} (${horizon.top}-${horizon.bottom}cm)`)}</title>`;
             svg += `</rect>`;
-            
+
             if (hHeight > 15) {
                 svg += `<text x="${xOffset + 5}" y="${hTop + 12}" font-family="Arial" font-size="10" font-weight="bold" fill="${textColor}">${escapeSvgText(horizon.name)}</text>`;
             }
         });
     });
-    
+
     return svg;
 }
 
