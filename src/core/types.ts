@@ -69,12 +69,37 @@ export interface Position {
 
 export type RenderMode = 'depth' | 'texture' | 'properties' | 'thumbnail';
 
+export interface DepthAnnotation {
+  depth: number | [number, number];  // single depth or range [top, bottom]
+  label: string;                      // e.g., "Restriction", "Water Table", "Fragipan"
+  color?: string;                     // optional thematic color (hex or CSS)
+  type?: 'line' | 'zone' | 'marker';  // visualization type (default: 'zone' for ranges, 'line' for single)
+  opacity?: number;                   // 0-1, default 0.3 for zones
+}
+
+export interface RenderAnnotationsOptions {
+  enabled?: boolean;
+  position?: 'right' | 'overlay';  // 'right' uses annotation area, 'overlay' overlays on profile
+  width?: number;                   // width in pixels (default: 60)
+  labelFontSize?: number;           // default: 10
+  showLegend?: boolean;             // show annotation legend (default: true)
+}
+
+export const ANNOTATION_PRESETS: Record<string, Partial<DepthAnnotation>> = {
+  'restriction': { color: '#8B4513', label: 'Restriction' },
+  'water_table': { color: '#4169E1', label: 'Water Table' },
+  'diagnostic_feature': { color: '#FF6347', label: 'Diagnostic' },
+  'solum': { color: '#DAA520', label: 'Solum' },
+  'parent_material': { color: '#A9A9A9', label: 'Parent Material' },
+};
+
 export interface StaticRenderOptions {
   width: number;
   height: number;
   format: 'png' | 'svg';
   mode?: RenderMode;
   tooltips?: RenderTooltipOptions;
+  annotations?: RenderAnnotationsOptions;
   onHorizonHover?: (payload: HorizonEventPayload) => void;
   onHorizonClick?: (payload: HorizonEventPayload) => void;
   tooltipRenderer?: (horizon: Horizon) => HTMLElement;
@@ -85,6 +110,7 @@ export interface InteractiveRenderOptions {
   arrangement: '2d' | '3d';
   mode?: RenderMode;
   tooltips?: RenderTooltipOptions;
+  annotations?: RenderAnnotationsOptions;
   onHorizonHover?: (payload: HorizonEventPayload) => void;
   onHorizonClick?: (payload: HorizonEventPayload) => void;
   tooltipRenderer?: (horizon: Horizon) => HTMLElement;

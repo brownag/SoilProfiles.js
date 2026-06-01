@@ -1,16 +1,18 @@
-import { Horizon, Position } from './types';
+import { Horizon, Position, DepthAnnotation } from './types';
 
 export class SoilProfile {
   public id: string;
   public horizons: Horizon[];
   public position?: Position;
   public metadata: Record<string, any>;
+  public depthAnnotations: DepthAnnotation[];
 
-  constructor(id: string, horizons: Horizon[] = [], position?: Position, metadata: Record<string, any> = {}) {
+  constructor(id: string, horizons: Horizon[] = [], position?: Position, metadata: Record<string, any> = {}, depthAnnotations: DepthAnnotation[] = []) {
     this.id = id;
     this.horizons = horizons;
     this.position = position;
     this.metadata = metadata;
+    this.depthAnnotations = depthAnnotations;
     this.sortHorizonsByDepth();
     this.validateDepths();
   }

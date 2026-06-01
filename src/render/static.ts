@@ -1,10 +1,12 @@
 import { SoilProfileCollection } from '../core/SoilProfileCollection';
-import { StaticRenderOptions, Horizon, RenderMode } from '../core/types';
+import { SoilProfile } from '../core/SoilProfile';
+import { StaticRenderOptions, Horizon, RenderMode, RenderAnnotationsOptions } from '../core/types';
 import { escapeSvgAttribute, escapeSvgText, finiteNumber, sanitizeColor, generateHorizonId, serializeHorizonData } from './safety';
 import { classifyTexture, getTextureColor } from '../core/texture';
 import { getPhColor, clampPh } from '../core/phScale';
 import { isDarkMode, THEMES, getTextColorForBackground, resolveHorizonColor } from '../core/colors';
 import { munsellToHex } from '../core/munsell';
+import { renderAnnotationsSVG, renderAnnotationLegendSVG } from './annotations';
 
 function shouldRenderTitle(tooltipMode: string): boolean {
   return tooltipMode === 'native' || tooltipMode === undefined;
@@ -29,13 +31,17 @@ export function renderStaticSVG(profiles: SoilProfileCollection, options: Static
     }
 
     if (mode === 'depth') {
-        svg += renderDepthMode(profiles, width, height, theme, tooltipMode);
+        svg += renderDepthMode(profiles, width, height, theme, options);
     } else if (mode === 'texture') {
         svg += renderTextureMode(profiles, width, height, theme, tooltipMode);
     } else if (mode === 'properties') {
         svg += renderPropertyMode(profiles, width, height, theme, tooltipMode);
     } else if (mode === 'thumbnail') {
         svg += renderThumbnailMode(profiles, width, height, theme, tooltipMode);
+    }
+
+    if (options.annotations?.enabled && options.annotations?.showLegend !== false) {
+        svg += renderAnnotationLegendSVG(profiles, 40, height - 35, theme);
     }
 
     svg += `</svg>`;
@@ -87,11 +93,18 @@ function renderThumbnailMode(profiles: SoilProfileCollection, width: number, hei
     return svg;
 }
 
-function renderDepthMode(profiles: SoilProfileCollection, width: number, height: number, theme: any, tooltipMode: string): string {
+function renderDepthMode(profiles: SoilProfileCollection, width: number, height: number, theme: any, options: StaticRenderOptions): string {
     const padding = 40;
     const maxDepth = profiles.getMaxDepth() || 100;
     const depthScale = (height - padding * 2) / maxDepth;
-    const profileWidth = Math.max(20, (width - padding * 2) / Math.max(1, profiles.profiles.length) - 20);
+    const tooltipMode = options.tooltips?.mode ?? 'native';
+
+    let profileSpacing = 20;
+    if (options.annotations?.enabled && options.annotations?.position === 'right') {
+        profileSpacing += (options.annotations?.width || 60);
+    }
+
+    const profileWidth = Math.max(20, (width - padding * 2) / Math.max(1, profiles.profiles.length) - profileSpacing);
     const showTitle = shouldRenderTitle(tooltipMode);
 
     let svg = '';
@@ -100,7 +113,7 @@ function renderDepthMode(profiles: SoilProfileCollection, width: number, height:
     svg += drawDepthScale(padding, maxDepth, depthScale, width, height, theme);
 
     profiles.profiles.forEach((profile, i) => {
-        const xOffset = padding + (i * (profileWidth + 20));
+        const xOffset = padding + (i * (profileWidth + profileSpacing));
 
         // Profile ID text
         svg += `<text x="${xOffset + profileWidth / 2}" y="${padding - 10}" font-family="Arial" font-size="12" font-weight="bold" text-anchor="middle" fill="${theme.textColor}">${escapeSvgText(profile.id)}</text>`;
@@ -133,6 +146,11 @@ function renderDepthMode(profiles: SoilProfileCollection, width: number, height:
                 svg += `<text x="${xOffset + 5}" y="${hTop + 12}" font-family="Arial" font-size="10" font-weight="bold" fill="${textColor}">${escapeSvgText(horizon.name)}</text>`;
             }
         });
+
+        // Add annotations
+        if (options.annotations?.enabled) {
+            svg += renderAnnotationsSVG(profile, xOffset, profileWidth, padding, depthScale, options.annotations, theme);
+        }
     });
 
     return svg;

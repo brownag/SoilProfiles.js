@@ -6,6 +6,7 @@ import { getPhColor } from '../core/phScale';
 import { stackLabels } from '../core/layout';
 import { escapeSvgText, escapeSvgAttribute, sanitizeColor, generateHorizonId, serializeHorizonData } from './safety';
 import { munsellToHex } from '../core/munsell';
+import { renderAnnotationsSVG, renderAnnotationLegendSVG } from './annotations';
 
 function shouldRenderTitle(tooltipMode: string): boolean {
   return tooltipMode === 'native' || tooltipMode === undefined;
@@ -26,10 +27,12 @@ export function renderComparisonSVG(profiles: SoilProfileCollection, options: Co
     const showTitle = shouldRenderTitle(tooltipMode);
 
     const profileWidth = options.profileWidth ?? 80;
-    const annotationWidth = 55;
+    const annotationWidth = options.annotations?.enabled && options.annotations?.position !== 'overlay' 
+        ? (options.annotations.width ?? 60) 
+        : 55;
     const columnWidth = profileWidth + annotationWidth;
     const marginTop = 40;
-    const marginBottom = 40;
+    const marginBottom = options.annotations?.enabled && options.annotations?.showLegend !== false ? 60 : 40;
     const axisWidth = 60;
     const mode = options.mode ?? 'depth';
 
@@ -62,7 +65,7 @@ export function renderComparisonSVG(profiles: SoilProfileCollection, options: Co
         svg += `<g transform="translate(${xOffset}, 0)">`;
 
         // Profile ID
-        svg += `<text x="${columnWidth / 2}" y="${marginTop - 15}" text-anchor="middle" font-family="Arial" font-size="11" font-weight="bold" fill="${theme.textColor}">${escapeSvgText(profile.id)}</text>`;
+        svg += `<text x="${profileWidth / 2}" y="${marginTop - 15}" text-anchor="middle" font-family="Arial" font-size="11" font-weight="bold" fill="${theme.textColor}">${escapeSvgText(profile.id)}</text>`;
 
         const thinHorizons: any[] = [];
 
@@ -105,8 +108,17 @@ export function renderComparisonSVG(profiles: SoilProfileCollection, options: Co
             });
         }
 
+        // Add annotations
+        if (options.annotations?.enabled) {
+            svg += renderAnnotationsSVG(profile, 0, profileWidth, marginTop, depthScale, options.annotations, theme);
+        }
+
         svg += `</g>`;
     });
+
+    if (options.annotations?.enabled && options.annotations?.showLegend !== false) {
+        svg += renderAnnotationLegendSVG(profiles, axisWidth, totalHeight - 35, theme);
+    }
 
     svg += `</svg>`;
     return svg;
@@ -180,10 +192,12 @@ export function renderComparisonHTML(profiles: SoilProfileCollection, options: C
     const theme = isDark ? THEMES.dark : THEMES.light;
     
     const profileWidth = options.profileWidth ?? 80;
-    const annotationWidth = 55;
+    const annotationWidth = options.annotations?.enabled && options.annotations?.position !== 'overlay' 
+        ? (options.annotations.width ?? 60) 
+        : 55;
     const columnWidth = profileWidth + annotationWidth;
     const marginTop = 20;
-    const marginBottom = 40;
+    const marginBottom = options.annotations?.enabled && options.annotations?.showLegend !== false ? 60 : 40;
     const axisWidth = 50;
     const mode = options.mode ?? 'depth';
 
@@ -194,7 +208,8 @@ export function renderComparisonHTML(profiles: SoilProfileCollection, options: C
     const centered = options.centered !== false;
     const profileMaxWidth = options.profileMaxWidth;
 
-    let html = `<div style="display:flex; width:100%; height:${profileHeight}px; background:${theme.bgColor}; overflow-y:auto;">`;
+    let html = `<div style="display:flex; flex-direction:column; width:100%; height:${profileHeight}px; background:${theme.bgColor}; overflow-y:auto;">`;
+    html += `<div style="display:flex; flex:1;">`;
 
     // Left: Shared depth axis
     html += `<div style="flex:0 0 ${axisWidth}px; border-right:1px solid ${theme.gridColor}; position:relative;">`;
@@ -267,9 +282,23 @@ export function renderComparisonHTML(profiles: SoilProfileCollection, options: C
             });
         }
 
+        // Add annotations
+        if (options.annotations?.enabled) {
+            html += renderAnnotationsSVG(profile, 0, profileWidth, marginTop, depthScale, options.annotations, theme);
+        }
+
         html += `</svg></div>`;
     });
 
     html += `</div></div>`;
+
+    if (options.annotations?.enabled && options.annotations?.showLegend !== false) {
+        html += `<div style="flex:0 0 40px; border-top:1px solid ${theme.gridColor}; padding:5px 10px;">`;
+        html += `<svg width="100%" height="35">`;
+        html += renderAnnotationLegendSVG(profiles, 0, 15, theme);
+        html += `</svg></div>`;
+    }
+
+    html += `</div>`;
     return html;
 }

@@ -1,5 +1,6 @@
 import { SoilProfileCollection } from '../core/SoilProfileCollection';
-import { InteractiveRenderOptions, TooltipLine } from '../core/types';
+import { SoilProfile } from '../core/SoilProfile';
+import { InteractiveRenderOptions, TooltipLine, RenderAnnotationsOptions } from '../core/types';
 import { sanitizeColor, setTooltipContent } from './safety';
 import { classifyTexture, getTextureColor } from '../core/texture';
 import { getPhColor } from '../core/phScale';
@@ -55,12 +56,18 @@ export function renderInteractive2D(container: HTMLElement, profiles: SoilProfil
   const isThumbnail = mode === 'thumbnail';
   const currentPadding = isThumbnail ? 5 : padding;
   const depthScale = (height - currentPadding * 2) / maxDepth;
+
+  let profileSpacing = 20;
+  if (options.annotations?.enabled && options.annotations?.position === 'right') {
+      profileSpacing += (options.annotations?.width || 60);
+  }
+
   const profileWidth = isThumbnail 
     ? (width - currentPadding * 2) / Math.max(1, profiles.profiles.length)
-    : Math.max(20, (width - padding * 2) / Math.max(1, profiles.profiles.length) - 20);
+    : Math.max(20, (width - padding * 2) / Math.max(1, profiles.profiles.length) - profileSpacing);
 
   // precalculate drawing regions for hit testing (hovers)
-  type HitRegion = { x: number, y: number, w: number, h: number, tooltipLines: TooltipLine[], horizon?: any, profileId?: string };
+  type HitRegion = { x: number, y: number, w: number, h: number, tooltipLines: TooltipLine[], horizon?: any, profileId?: string, annotation?: any };
   const hitRegions: HitRegion[] = [];
 
   // Draw background
@@ -88,7 +95,7 @@ export function renderInteractive2D(container: HTMLElement, profiles: SoilProfil
   }
 
   profiles.profiles.forEach((profile, i) => {
-    const xOffset = currentPadding + (i * (isThumbnail ? profileWidth : (profileWidth + 20)));
+    const xOffset = currentPadding + (i * (isThumbnail ? profileWidth : (profileWidth + profileSpacing)));
 
     // Draw Profile ID (skip for thumbnail)
     if (!isThumbnail) {
@@ -184,7 +191,16 @@ export function renderInteractive2D(container: HTMLElement, profiles: SoilProfil
       }
     });
 
+    // Add annotations
+    if (options.annotations?.enabled && !isThumbnail) {
+      renderAnnotationsCanvas(ctx, profile, xOffset, profileWidth, currentPadding, depthScale, options.annotations, theme, hitRegions, profile.id);
+    }
   });
+
+  // Draw legend if enabled
+  if (options.annotations?.enabled && options.annotations?.showLegend !== false && !isThumbnail) {
+    renderAnnotationLegendCanvas(ctx, profiles, 40, height - 35, theme);
+  }
 
   if (options.interactive) {
     let lastHoveredRegion: (typeof hitRegions)[0] | null = null;
@@ -256,4 +272,162 @@ export function renderInteractive2D(container: HTMLElement, profiles: SoilProfil
         lastHoveredRegion = null;
     });
   }
+}
+
+function renderAnnotationsCanvas(
+  ctx: CanvasRenderingContext2D,
+  profile: SoilProfile,
+  xOffset: number,
+  profileWidth: number,
+  padding: number,
+  depthScale: number,
+  options: RenderAnnotationsOptions,
+  theme: any,
+  hitRegions: any[],
+  profileId: string
+): void {
+  if (!options.enabled || !profile.depthAnnotations) return;
+
+  const annotationWidth = options.width || 60;
+  const fontSize = options.labelFontSize || 10;
+  const isOverlay = options.position === 'overlay';
+
+  profile.depthAnnotations.forEach(ann => {
+    let top: number;
+    let bottom: number;
+    let type = ann.type;
+
+    if (Array.isArray(ann.depth)) {
+      top = ann.depth[0];
+      bottom = ann.depth[1];
+      if (!type) type = 'zone';
+    } else {
+      top = ann.depth;
+      bottom = ann.depth;
+      if (!type) type = 'line';
+    }
+
+    const yTop = padding + top * depthScale;
+    const yBottom = padding + bottom * depthScale;
+    const color = ann.color || (theme.isDark ? '#aaa' : '#666');
+    const opacity = ann.opacity ?? 0.3;
+
+    const x = isOverlay ? xOffset : xOffset + profileWidth + 5;
+    const width = isOverlay ? profileWidth : annotationWidth;
+
+    if (type === 'zone') {
+      ctx.save();
+      ctx.globalAlpha = opacity;
+      ctx.fillStyle = color;
+      ctx.fillRect(x, yTop, width, Math.max(yBottom - yTop, 1));
+      ctx.globalAlpha = 1.0;
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 0.5;
+      ctx.strokeRect(x, yTop, width, Math.max(yBottom - yTop, 1));
+      ctx.restore();
+
+      ctx.fillStyle = theme.textColor;
+      ctx.font = `${fontSize}px Arial`;
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(ann.label, x + 2, yTop + (yBottom - yTop) / 2);
+
+      hitRegions.push({
+        x, y: yTop, w: width, h: Math.max(yBottom - yTop, 1),
+        tooltipLines: [
+          { label: 'Profile', value: profileId },
+          { label: 'Annotation', value: ann.label },
+          { label: 'Depth', value: `${top} - ${bottom} cm` }
+        ],
+        annotation: ann
+      });
+    } else {
+      ctx.save();
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(x, yTop);
+      ctx.lineTo(x + width, yTop);
+      ctx.stroke();
+      ctx.restore();
+
+      ctx.fillStyle = theme.textColor;
+      ctx.font = `${fontSize}px Arial`;
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'bottom';
+      const textX = isOverlay ? x + 2 : x + width + 2;
+      ctx.fillText(ann.label, textX, yTop - 2);
+
+      hitRegions.push({
+        x, y: yTop - 5, w: width, h: 10,
+        tooltipLines: [
+          { label: 'Profile', value: profileId },
+          { label: 'Annotation', value: ann.label },
+          { label: 'Depth', value: `${top} cm` }
+        ],
+        annotation: ann
+      });
+    }
+  });
+}
+
+function renderAnnotationLegendCanvas(ctx: CanvasRenderingContext2D, profiles: SoilProfileCollection, x: number, y: number, theme: any): void {
+  const uniqueAnnotations = new Map<string, { color: string; type: string }>();
+  
+  profiles.profiles.forEach(p => {
+    p.depthAnnotations.forEach(ann => {
+      if (!uniqueAnnotations.has(ann.label)) {
+        uniqueAnnotations.set(ann.label, { 
+          color: ann.color || (theme.isDark ? '#aaa' : '#666'),
+          type: ann.type || (Array.isArray(ann.depth) ? 'zone' : 'line')
+        });
+      }
+    });
+  });
+
+  if (uniqueAnnotations.size === 0) return;
+
+  ctx.fillStyle = theme.textColor;
+  ctx.font = 'bold 11px Arial';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'top';
+  ctx.fillText('Legend:', x, y);
+
+  let idx = 0;
+  const itemHeight = 15;
+  const itemWidth = 120;
+  const cols = 3;
+
+  uniqueAnnotations.forEach((val, label) => {
+    const col = idx % cols;
+    const row = Math.floor(idx / cols);
+    const lx = x + col * itemWidth;
+    const ly = y + 15 + row * itemHeight;
+
+    if (val.type === 'zone') {
+      ctx.save();
+      ctx.globalAlpha = 0.4;
+      ctx.fillStyle = val.color;
+      ctx.fillRect(lx, ly, 10, 10);
+      ctx.globalAlpha = 1.0;
+      ctx.strokeStyle = val.color;
+      ctx.lineWidth = 0.5;
+      ctx.strokeRect(lx, ly, 10, 10);
+      ctx.restore();
+    } else {
+      ctx.strokeStyle = val.color;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(lx, ly + 5);
+      ctx.lineTo(lx + 10, ly + 5);
+      ctx.stroke();
+    }
+    
+    ctx.fillStyle = theme.textColor;
+    ctx.font = '10px Arial';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    ctx.fillText(label, lx + 15, ly);
+    idx++;
+  });
 }
