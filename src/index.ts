@@ -11,6 +11,7 @@ export * from './render/static';
 export * from './render/interactive';
 export * from './render/comparison';
 export { renderComparisonSVG } from './render/comparison';
+export { renderTextureLegendSVG, renderPhLegendSVG, getThematicLegendMetadata } from './render/thematicLegends';
 export type { Render3DCleanup } from './render/three3d';
 
 export function renderInteractive3D(

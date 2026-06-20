@@ -2,15 +2,21 @@ import { Horizon, PropertyMap } from './types';
 
 /**
  * Maps raw data (e.g., from SSURGO) to a standardized Horizon object using a PropertyMap.
- * 
+ * Note: If depth values are missing, they will be null. The SoilProfile constructor will
+ * validate and reject profiles with null/undefined depths.
+ *
  * @param raw Raw horizon data object
  * @param map Property mapping (e.g., { clay: 'claytotal_r' })
  * @returns Standardized Horizon object
  */
 export function mapToHorizon(raw: any, map: PropertyMap = {}): Horizon {
+  // Get depth values; do NOT apply defaults here to avoid masking missing data
+  const top = raw.hzdept_r ?? raw.top;
+  const bottom = raw.hzdepb_r ?? raw.bottom;
+
   return {
-    top: Number(raw.hzdept_r ?? raw.top ?? 0),
-    bottom: Number(raw.hzdepb_r ?? raw.bottom ?? 10),
+    top: top !== undefined ? Number(top) : NaN,
+    bottom: bottom !== undefined ? Number(bottom) : NaN,
     name: String(raw[map.name || 'hzname'] || raw.name || ''),
     color: String(raw.color || '#cccccc'),
     texture: raw.texture,

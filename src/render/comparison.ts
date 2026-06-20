@@ -4,9 +4,10 @@ import { isDarkMode, THEMES, getTextColorForBackground, resolveHorizonColor } fr
 import { classifyTexture, getTextureColor } from '../core/texture';
 import { getPhColor } from '../core/phScale';
 import { stackLabels } from '../core/layout';
-import { escapeSvgText, escapeSvgAttribute, sanitizeColor, generateHorizonId, serializeHorizonData } from './safety';
+import { escapeSvgText, escapeSvgAttribute, sanitizeColor, generateHorizonId, serializeHorizonData, getSafeProfileId } from './safety';
 import { munsellToHex } from '../core/munsell';
 import { renderAnnotationsSVG, renderAnnotationLegendSVG } from './annotations';
+import { renderTextureLegendSVG, renderPhLegendSVG, getThematicLegendMetadata } from './thematicLegends';
 
 function shouldRenderTitle(tooltipMode: string): boolean {
   return tooltipMode === 'native' || tooltipMode === undefined;
@@ -75,18 +76,19 @@ export function renderComparisonSVG(profiles: SoilProfileCollection, options: Co
             const hHeight = y2 - y1;
             const horizonId = generateHorizonId(profile.id, hz.name, hIdx);
             const horizonData = escapeSvgAttribute(serializeHorizonData(hz));
+            const profileIdAttr = escapeSvgAttribute(getSafeProfileId(profile.id));
 
             let color = sanitizeColor(hz.color);
             if (mode === 'properties' && hz.ph !== undefined) {
                 color = getPhColor(hz.ph);
-            } else if (hz.clay !== undefined) {
+            } else if (mode === 'texture' && hz.clay !== undefined) {
                 color = getTextureColor(classifyTexture(hz));
             } else {
                 const munsellColor = munsellToHex(hz.munsellHue, hz.munsellValue, hz.munsellChroma);
                 color = resolveHorizonColor(munsellColor, color);
             }
 
-            svg += `<rect x="0" y="${y1}" width="${profileWidth}" height="${Math.max(hHeight, 1)}" fill="${color}" stroke="#333" stroke-width="0.5" data-horizon-id="${horizonId}" data-horizon-properties="${horizonData}">`;
+            svg += `<rect x="0" y="${y1}" width="${profileWidth}" height="${Math.max(hHeight, 1)}" fill="${color}" stroke="#333" stroke-width="0.5" data-profile-id="${profileIdAttr}" data-horizon-id="${horizonId}" data-horizon-properties="${horizonData}">`;
             if (showTitle) {
               svg += `<title>${escapeSvgText(hz.name)}</title>`;
             }
@@ -120,6 +122,13 @@ export function renderComparisonSVG(profiles: SoilProfileCollection, options: Co
         svg += renderAnnotationLegendSVG(profiles, axisWidth, totalHeight - 35, theme);
     }
 
+    // Render thematic legend based on mode
+    if (mode === 'texture') {
+        svg += renderTextureLegendSVG(axisWidth, totalHeight - 35, theme);
+    } else if (mode === 'properties') {
+        svg += renderPhLegendSVG(axisWidth, totalHeight - 35, theme);
+    }
+
     svg += `</svg>`;
     return svg;
 }
@@ -135,18 +144,22 @@ export function renderComparison(container: HTMLElement, profiles: SoilProfileCo
 
 function attachHorizonEventListeners(container: HTMLElement, profiles: SoilProfileCollection, options: ComparisonRenderOptions): void {
     const elements = container.querySelectorAll('[data-horizon-properties]');
+    let skippedCount = 0;
 
     elements.forEach(element => {
         if (!(element instanceof SVGElement)) return;
 
         const horizonId = element.getAttribute('data-horizon-id');
         const horizonDataStr = element.getAttribute('data-horizon-properties');
+        const profileId = element.getAttribute('data-profile-id');
 
-        if (!horizonId || !horizonDataStr) return;
+        if (!horizonId || !horizonDataStr || !profileId) {
+            skippedCount++;
+            return;
+        }
 
         try {
             const horizon = JSON.parse(horizonDataStr);
-            const [profileId] = horizonId.split('_');
 
             if (options.onHorizonClick) {
                 element.addEventListener('click', (event) => {
@@ -177,6 +190,10 @@ function attachHorizonEventListeners(container: HTMLElement, profiles: SoilProfi
             // Skip elements with invalid JSON
         }
     });
+
+    if (skippedCount > 0) {
+        console.warn(`SoilProfiles: ${skippedCount} horizon element(s) were skipped because they were missing required data-profile-id, data-horizon-id, or data-horizon-properties attributes. This may indicate an SVG was generated with an older version or by external code.`);
+    }
 }
 
 export function renderComparisonToDataURL(profiles: SoilProfileCollection, options: ComparisonRenderOptions): string {
@@ -234,12 +251,12 @@ export function renderComparisonHTML(profiles: SoilProfileCollection, options: C
     html += `<div style="${profilesContainerStyle}">`;
 
     profiles.profiles.forEach(profile => {
-        let colStyle = `flex:0 0 ${columnWidth}px; position:relative; border-left:1px solid ${theme.gridColor};`;
+        let colStyle = `flex:0 0 ${columnWidth}px; position:relative;`;
         if (profileMaxWidth) {
             colStyle += `max-width:${profileMaxWidth}px;`;
         }
         html += `<div style="${colStyle}">`;
-        html += `<div style="position:absolute; top:2px; left:2px; right:2px; font-size:10px; font-weight:bold; text-align:center; color:${theme.textColor}; z-index:10; background:${theme.bgColor};">${escapeSvgText(profile.id)}</div>`;
+        html += `<div style="position:absolute; top:2px; left:0; width:${profileWidth}px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; font-size:10px; font-weight:bold; text-align:center; color:${theme.textColor}; z-index:10; background:${theme.bgColor};">${escapeSvgText(profile.id)}</div>`;
 
         html += `<svg viewBox="0 0 ${columnWidth} ${profileHeight}" style="width:100%; height:${profileHeight}px; margin-top:18px;">`;
         
@@ -251,18 +268,19 @@ export function renderComparisonHTML(profiles: SoilProfileCollection, options: C
             const hHeight = y2 - y1;
             const horizonId = generateHorizonId(profile.id, hz.name, idx);
             const horizonData = escapeSvgAttribute(serializeHorizonData(hz));
+            const profileIdAttr = escapeSvgAttribute(getSafeProfileId(profile.id));
 
             let color = sanitizeColor(hz.color);
             if (mode === 'properties' && hz.ph !== undefined) {
                 color = getPhColor(hz.ph);
-            } else if (hz.clay !== undefined) {
+            } else if (mode === 'texture' && hz.clay !== undefined) {
                 color = getTextureColor(classifyTexture(hz));
             } else {
                 const munsellColor = munsellToHex(hz.munsellHue, hz.munsellValue, hz.munsellChroma);
                 color = resolveHorizonColor(munsellColor, color);
             }
 
-            html += `<rect x="0" y="${y1}" width="${profileWidth}" height="${Math.max(hHeight, 1)}" fill="${color}" stroke="#333" stroke-width="0.5" data-horizon-id="${horizonId}" data-horizon-properties="${horizonData}">`;
+            html += `<rect x="0" y="${y1}" width="${profileWidth}" height="${Math.max(hHeight, 1)}" fill="${color}" stroke="#333" stroke-width="0.5" data-profile-id="${profileIdAttr}" data-horizon-id="${horizonId}" data-horizon-properties="${horizonData}">`;
             html += `<title>${escapeSvgText(`${hz.name} (${hz.top}-${hz.bottom}cm)`)}</title>`;
             html += `</rect>`;
 
@@ -296,6 +314,23 @@ export function renderComparisonHTML(profiles: SoilProfileCollection, options: C
         html += `<div style="flex:0 0 40px; border-top:1px solid ${theme.gridColor}; padding:5px 10px;">`;
         html += `<svg width="100%" height="35">`;
         html += renderAnnotationLegendSVG(profiles, 0, 15, theme);
+        html += `</svg></div>`;
+    }
+
+    // Render thematic legend based on mode
+    if (mode === 'texture' || mode === 'properties') {
+        const legendMeta = getThematicLegendMetadata(mode);
+        const legendCols = mode === 'texture' ? 4 : 3;
+        const numRows = legendMeta ? Math.ceil(legendMeta.items.length / legendCols) : 2;
+        const legendSvgHeight = numRows * 15 + 25;
+        const legendDivHeight = legendSvgHeight + 15;
+        html += `<div style="flex:0 0 ${legendDivHeight}px; border-top:1px solid ${theme.gridColor}; padding:5px 10px;">`;
+        html += `<svg width="100%" height="${legendSvgHeight}">`;
+        if (mode === 'texture') {
+            html += renderTextureLegendSVG(0, 15, theme);
+        } else if (mode === 'properties') {
+            html += renderPhLegendSVG(0, 15, theme);
+        }
         html += `</svg></div>`;
     }
 

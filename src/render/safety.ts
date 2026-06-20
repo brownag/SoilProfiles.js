@@ -72,10 +72,16 @@ export function setTooltipContent(tooltip: HTMLElement, lines: TooltipLine[]): v
   });
 }
 
+function safeName(str: string): string {
+  return str.toLowerCase().replace(/[^a-z0-9_-]/g, '_');
+}
+
 export function generateHorizonId(profileId: string, horizonName: string, index: number): string {
-  // Sanitize to only allow safe characters (alphanumeric, underscore, hyphen)
-  const safeName = (str: string) => str.toLowerCase().replace(/[^a-z0-9_-]/g, '_');
   return `${safeName(profileId)}_hz_${safeName(horizonName)}_${index}`;
+}
+
+export function getSafeProfileId(profileId: string): string {
+  return safeName(profileId);
 }
 
 export function serializeHorizonData(horizon: any): string {

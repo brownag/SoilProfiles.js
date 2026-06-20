@@ -116,8 +116,18 @@ export interface InteractiveRenderOptions {
   tooltipRenderer?: (horizon: Horizon) => HTMLElement;
 }
 
+/**
+ * Renders a side-by-side comparison of soil profiles with optional thematic coloring.
+ * Supports rendering modes:
+ * - 'depth': Renders using Munsell or stored colors
+ * - 'texture': Colors horizons by USDA texture class, includes texture legend
+ * - 'properties': Colors horizons by pH value, includes pH legend
+ *
+ * Use showThematicLegend to control legend visibility for texture and properties modes.
+ */
 export interface ComparisonRenderOptions extends StaticRenderOptions {
   profileWidth?: number;
   centered?: boolean;
   profileMaxWidth?: number;
+  showThematicLegend?: boolean;  // Whether to show texture/pH legend (default: true)
 }

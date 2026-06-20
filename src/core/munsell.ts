@@ -31,7 +31,7 @@ export function munsellToHex(
   const numValue = Number(value);
   const numChroma = Number(chroma);
 
-  if (isNaN(numValue) || isNaN(numChroma) || numValue < 0 || numChroma < 0) {
+  if (isNaN(numValue) || isNaN(numChroma) || numChroma < 0) {
     return null;
   }
 

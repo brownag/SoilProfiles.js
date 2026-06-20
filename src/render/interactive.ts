@@ -2,7 +2,7 @@ import { SoilProfileCollection } from '../core/SoilProfileCollection';
 import { SoilProfile } from '../core/SoilProfile';
 import { InteractiveRenderOptions, TooltipLine, RenderAnnotationsOptions } from '../core/types';
 import { sanitizeColor, setTooltipContent } from './safety';
-import { classifyTexture, getTextureColor } from '../core/texture';
+import { classifyTexture, textureCodeToName, getTextureColor } from '../core/texture';
 import { getPhColor } from '../core/phScale';
 import { isDarkMode, THEMES, getTextColorForBackground, resolveHorizonColor } from '../core/colors';
 import { munsellToHex } from '../core/munsell';
@@ -116,7 +116,7 @@ export function renderInteractive2D(container: HTMLElement, profiles: SoilProfil
       } else if (horizon.clay !== undefined && mode !== 'thumbnail') {
         const textureClass = classifyTexture(horizon);
         color = getTextureColor(textureClass);
-      } else if ((mode === 'depth' || mode === 'thumbnail') && !horizon.clay) {
+      } else if ((mode === 'depth' || mode === 'thumbnail') && horizon.clay === undefined) {
         const munsellColor = munsellToHex(horizon.munsellHue, horizon.munsellValue, horizon.munsellChroma);
         color = resolveHorizonColor(munsellColor, color);
       }
@@ -138,9 +138,9 @@ export function renderInteractive2D(container: HTMLElement, profiles: SoilProfil
       ];
 
       if (horizon.clay !== undefined) {
-        const textureClass = classifyTexture(horizon);
-        if (textureClass) {
-          tooltipLines.push({ label: 'Texture', value: textureClass.replace(/_/g, ' ') });
+        const textureCode = classifyTexture(horizon);
+        if (textureCode) {
+          tooltipLines.push({ label: 'Texture', value: textureCodeToName(textureCode) });
         }
         tooltipLines.push({ label: 'Clay', value: `${horizon.clay}%` });
         tooltipLines.push({ label: 'Sand', value: `${horizon.sand}%` });
@@ -286,13 +286,13 @@ function renderAnnotationsCanvas(
   hitRegions: any[],
   profileId: string
 ): void {
-  if (!options.enabled || !profile.depthAnnotations) return;
+  if (!options.enabled) return;
 
   const annotationWidth = options.width || 60;
   const fontSize = options.labelFontSize || 10;
   const isOverlay = options.position === 'overlay';
 
-  profile.depthAnnotations.forEach(ann => {
+  (profile.depthAnnotations ?? []).forEach(ann => {
     let top: number;
     let bottom: number;
     let type = ann.type;
@@ -373,9 +373,9 @@ function renderAnnotationsCanvas(
 
 function renderAnnotationLegendCanvas(ctx: CanvasRenderingContext2D, profiles: SoilProfileCollection, x: number, y: number, theme: any): void {
   const uniqueAnnotations = new Map<string, { color: string; type: string }>();
-  
+
   profiles.profiles.forEach(p => {
-    p.depthAnnotations.forEach(ann => {
+    (p.depthAnnotations ?? []).forEach(ann => {
       if (!uniqueAnnotations.has(ann.label)) {
         uniqueAnnotations.set(ann.label, { 
           color: ann.color || (theme.isDark ? '#aaa' : '#666'),

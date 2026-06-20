@@ -1,7 +1,7 @@
 import { SoilProfileCollection } from '../core/SoilProfileCollection';
 import { SoilProfile } from '../core/SoilProfile';
 import { StaticRenderOptions, Horizon, RenderMode, RenderAnnotationsOptions } from '../core/types';
-import { escapeSvgAttribute, escapeSvgText, finiteNumber, sanitizeColor, generateHorizonId, serializeHorizonData } from './safety';
+import { escapeSvgAttribute, escapeSvgText, finiteNumber, sanitizeColor, generateHorizonId, serializeHorizonData, getSafeProfileId } from './safety';
 import { classifyTexture, getTextureColor } from '../core/texture';
 import { getPhColor, clampPh } from '../core/phScale';
 import { isDarkMode, THEMES, getTextColorForBackground, resolveHorizonColor } from '../core/colors';
@@ -76,7 +76,8 @@ function renderThumbnailMode(profiles: SoilProfileCollection, width: number, hei
             const textColor = getTextColorForBackground(color);
 
             const horizonData = escapeSvgAttribute(serializeHorizonData(horizon));
-            svg += `<rect x="${xOffset}" y="${hTop}" width="${profileWidth}" height="${hHeight}" fill="${escapeSvgAttribute(color)}" stroke="none" data-horizon-id="${horizonId}" data-horizon-properties="${horizonData}">`;
+            const profileIdAttr = escapeSvgAttribute(getSafeProfileId(profile.id));
+            svg += `<rect x="${xOffset}" y="${hTop}" width="${profileWidth}" height="${hHeight}" fill="${escapeSvgAttribute(color)}" stroke="none" data-profile-id="${profileIdAttr}" data-horizon-id="${horizonId}" data-horizon-properties="${horizonData}">`;
             if (showTitle) {
               svg += `<title>${escapeSvgText(`${horizon.name} (${horizon.top}-${horizon.bottom}cm)`)}</title>`;
             }
@@ -135,8 +136,9 @@ function renderDepthMode(profiles: SoilProfileCollection, width: number, height:
 
             const textColor = getTextColorForBackground(color);
             const horizonData = escapeSvgAttribute(serializeHorizonData(horizon));
+            const profileIdAttr = escapeSvgAttribute(getSafeProfileId(profile.id));
 
-            svg += `<rect x="${xOffset}" y="${hTop}" width="${profileWidth}" height="${hHeight}" fill="${escapeSvgAttribute(color)}" stroke="#333" stroke-width="1" data-horizon-id="${horizonId}" data-horizon-properties="${horizonData}">`;
+            svg += `<rect x="${xOffset}" y="${hTop}" width="${profileWidth}" height="${hHeight}" fill="${escapeSvgAttribute(color)}" stroke="#333" stroke-width="1" data-profile-id="${profileIdAttr}" data-horizon-id="${horizonId}" data-horizon-properties="${horizonData}">`;
             if (showTitle) {
               svg += `<title>${escapeSvgText(`${horizon.name} (${horizon.top}-${horizon.bottom}cm)`)}</title>`;
             }
@@ -189,6 +191,7 @@ function renderTextureMode(profiles: SoilProfileCollection, width: number, heigh
         const y = padding + depth * depthScale;
         const horizonId = generateHorizonId(profile.id, hz.name, hIdx);
         const horizonData = escapeSvgAttribute(serializeHorizonData(hz));
+        const profileIdAttr = escapeSvgAttribute(getSafeProfileId(profile.id));
 
         const clay = hz.clay ?? 0;
         const sand = hz.sand ?? 0;
@@ -203,7 +206,7 @@ function renderTextureMode(profiles: SoilProfileCollection, width: number, heigh
             { x: xSand, color: sandAxis.color, val: sand },
             { x: xSilt, color: siltAxis.color, val: silt }
         ].forEach(point => {
-            svg += `<circle cx="${point.x}" cy="${y}" r="4" fill="${point.color}" stroke="#333" stroke-width="0.5" data-horizon-id="${horizonId}" data-horizon-properties="${horizonData}">`;
+            svg += `<circle cx="${point.x}" cy="${y}" r="4" fill="${point.color}" stroke="#333" stroke-width="0.5" data-profile-id="${profileIdAttr}" data-horizon-id="${horizonId}" data-horizon-properties="${horizonData}">`;
             if (showTitle) {
               svg += `<title>${point.val.toFixed(1)}%</title>`;
             }
@@ -237,6 +240,7 @@ function renderPropertyMode(profiles: SoilProfileCollection, width: number, heig
         const y2 = padding + hz.bottom * depthScale;
         const horizonId = generateHorizonId(profile.id, hz.name, hIdx);
         const horizonData = escapeSvgAttribute(serializeHorizonData(hz));
+        const profileIdAttr = escapeSvgAttribute(getSafeProfileId(profile.id));
 
         if (hz.ph !== undefined) {
             const pH = hz.ph;
@@ -244,7 +248,7 @@ function renderPropertyMode(profiles: SoilProfileCollection, width: number, heig
             const color = getPhColor(pH);
             const textColor = theme.textColor;
 
-            svg += `<rect x="${marginLeft + 20}" y="${y1}" width="${offset}" height="${y2 - y1}" fill="${color}" opacity="0.7" stroke="${theme.textColor}" stroke-width="1" data-horizon-id="${horizonId}" data-horizon-properties="${horizonData}">`;
+            svg += `<rect x="${marginLeft + 20}" y="${y1}" width="${offset}" height="${y2 - y1}" fill="${color}" opacity="0.7" stroke="${theme.textColor}" stroke-width="1" data-profile-id="${profileIdAttr}" data-horizon-id="${horizonId}" data-horizon-properties="${horizonData}">`;
             if (showTitle) {
               svg += `<title>pH: ${pH}</title>`;
             }
@@ -306,18 +310,22 @@ export function renderStaticToDOM(container: HTMLElement, profiles: SoilProfileC
 
 function attachHorizonEventListeners(container: HTMLElement, profiles: SoilProfileCollection, options: StaticRenderOptions): void {
     const elements = container.querySelectorAll('[data-horizon-properties]');
+    let skippedCount = 0;
 
     elements.forEach(element => {
         if (!(element instanceof SVGElement)) return;
 
         const horizonId = element.getAttribute('data-horizon-id');
         const horizonDataStr = element.getAttribute('data-horizon-properties');
+        const profileId = element.getAttribute('data-profile-id');
 
-        if (!horizonId || !horizonDataStr) return;
+        if (!horizonId || !horizonDataStr || !profileId) {
+            skippedCount++;
+            return;
+        }
 
         try {
             const horizon = JSON.parse(horizonDataStr);
-            const [profileId] = horizonId.split('_');
 
             if (options.onHorizonClick) {
                 element.addEventListener('click', (event) => {
@@ -348,4 +356,8 @@ function attachHorizonEventListeners(container: HTMLElement, profiles: SoilProfi
             // Skip elements with invalid JSON
         }
     });
+
+    if (skippedCount > 0) {
+        console.warn(`SoilProfiles: ${skippedCount} horizon element(s) were skipped because they were missing required data-profile-id, data-horizon-id, or data-horizon-properties attributes. This may indicate an SVG was generated with an older version or by external code.`);
+    }
 }

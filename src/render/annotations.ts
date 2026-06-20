@@ -62,9 +62,9 @@ export function renderAnnotationsSVG(
 
 export function renderAnnotationLegendSVG(profiles: SoilProfileCollection, x: number, y: number, theme: any): string {
     const uniqueAnnotations = new Map<string, { color: string; type: string }>();
-    
+
     profiles.profiles.forEach(p => {
-        p.depthAnnotations.forEach(ann => {
+        (p.depthAnnotations ?? []).forEach(ann => {
             if (!uniqueAnnotations.has(ann.label)) {
                 uniqueAnnotations.set(ann.label, { 
                     color: ann.color || (theme.isDark ? '#aaa' : '#666'),

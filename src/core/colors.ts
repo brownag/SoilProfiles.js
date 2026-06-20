@@ -39,6 +39,7 @@ export function isDarkMode(): boolean {
  */
 export const THEMES = {
   light: {
+    isDark: false,
     bgColor: '#f5f5f5',
     textColor: '#333333',
     borderColor: '#cccccc',
@@ -46,6 +47,7 @@ export const THEMES = {
     dimColor: '#aaaaaa'
   },
   dark: {
+    isDark: true,
     bgColor: '#1a1c20',
     textColor: '#e8eaf0',
     borderColor: '#333333',
@@ -68,7 +70,7 @@ export function resolveHorizonColor(
   munsellColor: string | null,
   fallbackColor: string
 ): string {
-  if (munsellColor) {
+  if (munsellColor !== null) {
     return munsellColor;
   }
   return fallbackColor;

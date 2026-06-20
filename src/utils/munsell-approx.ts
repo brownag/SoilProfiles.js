@@ -100,6 +100,22 @@ export function interpolateLab(hue: string, chroma: number): { a: number; b: num
   const p = sortedPoints.slice(0, 3);
   const p0 = p[0], p1 = p[1], p2 = p[2];
 
+  // Guard against division by zero: ensure all three points have distinct chroma values
+  const unique = [...new Set([p0.chroma, p1.chroma, p2.chroma])];
+  if (unique.length < 3) {
+    // Fallback to linear interpolation between the two closest points with distinct chroma
+    const p0b = points.find(pt => pt.chroma <= chroma) ?? points[0];
+    const p1b = points.find(pt => pt.chroma > chroma) ?? points[points.length - 1];
+    if (p0b.chroma === p1b.chroma) {
+      return { a: p0b.a, b: p0b.b };
+    }
+    const t = (chroma - p0b.chroma) / (p1b.chroma - p0b.chroma);
+    return {
+      a: p0b.a + t * (p1b.a - p0b.a),
+      b: p0b.b + t * (p1b.b - p0b.b)
+    };
+  }
+
   const L0 = (chroma - p1.chroma) * (chroma - p2.chroma) / ((p0.chroma - p1.chroma) * (p0.chroma - p2.chroma));
   const L1 = (chroma - p0.chroma) * (chroma - p2.chroma) / ((p1.chroma - p0.chroma) * (p1.chroma - p2.chroma));
   const L2 = (chroma - p0.chroma) * (chroma - p1.chroma) / ((p2.chroma - p0.chroma) * (p2.chroma - p1.chroma));

@@ -1,0 +1,38 @@
+# Development and source files
+src/
+tests/
+examples/
+.development/
+.claude/
+
+# Build artifacts and bundled outputs
+SoilProfiles.js
+*.bundle.js
+
+# Configuration and tooling
+.git/
+.gitignore
+jest.config.js
+tsconfig.json
+Makefile
+*.tsbuildinfo
+
+# Dependencies
+node_modules/
+
+# Build artifacts
+*.test.js
+*.test.d.ts
+*.spec.js
+*.spec.d.ts
+
+# Editor and OS files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Build outputs (keep dist by default, but if you want to exclude)
+# dist/
