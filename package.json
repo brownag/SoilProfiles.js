@@ -1,6 +1,6 @@
 {
   "name": "soilprofiles",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "TypeScript library for managing and rendering soil profile data in the browser or Node.js",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -21,7 +21,13 @@
     "build": "tsc",
     "demo:web": "node examples/serve-demo.js"
   },
-  "keywords": ["soil", "soil-profile", "soil-science", "rendering", "three"],
+  "keywords": [
+    "soil",
+    "soil-profile",
+    "soil-science",
+    "rendering",
+    "three"
+  ],
   "author": {
     "name": "Andrew Brown",
     "email": "brown.andrewg@gmail.com"
@@ -55,5 +61,10 @@
     "three": "^0.184.0",
     "ts-jest": "^29.4.11",
     "typescript": "^6.0.3"
+  },
+  "allowScripts": {
+    "canvas@3.2.3": true,
+    "esbuild@0.28.1": true,
+    "unrs-resolver@1.12.2": true
   }
 }
