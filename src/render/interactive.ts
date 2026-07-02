@@ -205,6 +205,18 @@ export function renderInteractive2D(container: HTMLElement, profiles: SoilProfil
   if (options.interactive) {
     let lastHoveredRegion: (typeof hitRegions)[0] | null = null;
 
+    const fireLeave = (region: (typeof hitRegions)[0], e: MouseEvent, mouseX: number, mouseY: number) => {
+      if (options.onHorizonLeave && region.horizon && region.profileId) {
+        options.onHorizonLeave({
+          horizonId: `${region.profileId}_hz_${region.horizon.name.toLowerCase()}`,
+          profileId: region.profileId,
+          horizon: region.horizon,
+          event: e,
+          position: { x: mouseX, y: mouseY }
+        });
+      }
+    };
+
     canvas.addEventListener('mousemove', (e) => {
       const rect = canvas.getBoundingClientRect();
       const mouseX = e.clientX - rect.left;
@@ -217,6 +229,9 @@ export function renderInteractive2D(container: HTMLElement, profiles: SoilProfil
           hovered = true;
 
           if (lastHoveredRegion !== region) {
+            if (lastHoveredRegion) {
+              fireLeave(lastHoveredRegion, e, mouseX, mouseY);
+            }
             if (options.onHorizonHover && region.horizon && region.profileId) {
               options.onHorizonHover({
                 horizonId: `${region.profileId}_hz_${region.horizon.name.toLowerCase()}`,
@@ -239,8 +254,20 @@ export function renderInteractive2D(container: HTMLElement, profiles: SoilProfil
 
       if (!hovered) {
         tooltip.style.opacity = '0';
+        if (lastHoveredRegion) {
+          fireLeave(lastHoveredRegion, e, mouseX, mouseY);
+        }
         lastHoveredRegion = null;
       }
+    });
+
+    canvas.addEventListener('mouseleave', (e) => {
+      tooltip.style.opacity = '0';
+      if (lastHoveredRegion) {
+        const rect = canvas.getBoundingClientRect();
+        fireLeave(lastHoveredRegion, e, e.clientX - rect.left, e.clientY - rect.top);
+      }
+      lastHoveredRegion = null;
     });
 
     canvas.addEventListener('click', (e) => {

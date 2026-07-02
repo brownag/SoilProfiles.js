@@ -10,6 +10,7 @@ export * from './core/tooltipUtils';
 export * from './render/static';
 export * from './render/interactive';
 export * from './render/comparison';
+export * from './render/events';
 export { renderComparisonSVG } from './render/comparison';
 export { renderTextureLegendSVG, renderPhLegendSVG, getThematicLegendMetadata } from './render/thematicLegends';
 export type { Render3DCleanup } from './render/three3d';

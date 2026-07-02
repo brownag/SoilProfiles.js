@@ -7,6 +7,7 @@ import { getPhColor, clampPh } from '../core/phScale';
 import { isDarkMode, THEMES, getTextColorForBackground, resolveHorizonColor } from '../core/colors';
 import { munsellToHex } from '../core/munsell';
 import { renderAnnotationsSVG, renderAnnotationLegendSVG } from './annotations';
+import { attachHorizonEventListeners, hasHorizonEventHandlers } from './events';
 
 function shouldRenderTitle(tooltipMode: string): boolean {
   return tooltipMode === 'native' || tooltipMode === undefined;
@@ -303,61 +304,8 @@ export function renderStaticToDOM(container: HTMLElement, profiles: SoilProfileC
     const svg = renderStaticSVG(profiles, options);
     container.innerHTML = svg;
 
-    if (options.onHorizonClick || options.onHorizonHover) {
-        attachHorizonEventListeners(container, profiles, options);
+    if (hasHorizonEventHandlers(options)) {
+        attachHorizonEventListeners(container, options);
     }
 }
 
-function attachHorizonEventListeners(container: HTMLElement, profiles: SoilProfileCollection, options: StaticRenderOptions): void {
-    const elements = container.querySelectorAll('[data-horizon-properties]');
-    let skippedCount = 0;
-
-    elements.forEach(element => {
-        if (!(element instanceof SVGElement)) return;
-
-        const horizonId = element.getAttribute('data-horizon-id');
-        const horizonDataStr = element.getAttribute('data-horizon-properties');
-        const profileId = element.getAttribute('data-profile-id');
-
-        if (!horizonId || !horizonDataStr || !profileId) {
-            skippedCount++;
-            return;
-        }
-
-        try {
-            const horizon = JSON.parse(horizonDataStr);
-
-            if (options.onHorizonClick) {
-                element.addEventListener('click', (event) => {
-                    const rect = (element as SVGElement).getBoundingClientRect();
-                    options.onHorizonClick!({
-                        horizonId,
-                        profileId,
-                        horizon,
-                        event: event as MouseEvent,
-                        position: { x: event.clientX - rect.left, y: event.clientY - rect.top }
-                    });
-                });
-            }
-
-            if (options.onHorizonHover) {
-                element.addEventListener('mouseenter', (event) => {
-                    const rect = (element as SVGElement).getBoundingClientRect();
-                    options.onHorizonHover!({
-                        horizonId,
-                        profileId,
-                        horizon,
-                        event: event as MouseEvent,
-                        position: { x: event.clientX - rect.left, y: event.clientY - rect.top }
-                    });
-                });
-            }
-        } catch {
-            // Skip elements with invalid JSON
-        }
-    });
-
-    if (skippedCount > 0) {
-        console.warn(`SoilProfiles: ${skippedCount} horizon element(s) were skipped because they were missing required data-profile-id, data-horizon-id, or data-horizon-properties attributes. This may indicate an SVG was generated with an older version or by external code.`);
-    }
-}

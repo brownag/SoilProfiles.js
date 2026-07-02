@@ -7,6 +7,7 @@ import { stackLabels } from '../core/layout';
 import { escapeSvgText, escapeSvgAttribute, sanitizeColor, generateHorizonId, serializeHorizonData, getSafeProfileId } from './safety';
 import { munsellToHex } from '../core/munsell';
 import { renderAnnotationsSVG, renderAnnotationLegendSVG } from './annotations';
+import { attachHorizonEventListeners, hasHorizonEventHandlers } from './events';
 import { renderTextureLegendSVG, renderPhLegendSVG, getThematicLegendMetadata } from './thematicLegends';
 
 function shouldRenderTitle(tooltipMode: string): boolean {
@@ -137,64 +138,11 @@ export function renderComparison(container: HTMLElement, profiles: SoilProfileCo
     const html = renderComparisonHTML(profiles, options);
     container.innerHTML = html;
 
-    if (options.onHorizonClick || options.onHorizonHover) {
-        attachHorizonEventListeners(container, profiles, options);
+    if (hasHorizonEventHandlers(options)) {
+        attachHorizonEventListeners(container, options);
     }
 }
 
-function attachHorizonEventListeners(container: HTMLElement, profiles: SoilProfileCollection, options: ComparisonRenderOptions): void {
-    const elements = container.querySelectorAll('[data-horizon-properties]');
-    let skippedCount = 0;
-
-    elements.forEach(element => {
-        if (!(element instanceof SVGElement)) return;
-
-        const horizonId = element.getAttribute('data-horizon-id');
-        const horizonDataStr = element.getAttribute('data-horizon-properties');
-        const profileId = element.getAttribute('data-profile-id');
-
-        if (!horizonId || !horizonDataStr || !profileId) {
-            skippedCount++;
-            return;
-        }
-
-        try {
-            const horizon = JSON.parse(horizonDataStr);
-
-            if (options.onHorizonClick) {
-                element.addEventListener('click', (event) => {
-                    const rect = (element as SVGElement).getBoundingClientRect();
-                    options.onHorizonClick!({
-                        horizonId,
-                        profileId,
-                        horizon,
-                        event: event as MouseEvent,
-                        position: { x: event.clientX - rect.left, y: event.clientY - rect.top }
-                    });
-                });
-            }
-
-            if (options.onHorizonHover) {
-                element.addEventListener('mouseenter', (event) => {
-                    const rect = (element as SVGElement).getBoundingClientRect();
-                    options.onHorizonHover!({
-                        horizonId,
-                        profileId,
-                        horizon,
-                        event: event as MouseEvent,
-                        position: { x: event.clientX - rect.left, y: event.clientY - rect.top }
-                    });
-                });
-            }
-        } catch {
-            // Skip elements with invalid JSON
-        }
-    });
-
-    if (skippedCount > 0) {
-        console.warn(`SoilProfiles: ${skippedCount} horizon element(s) were skipped because they were missing required data-profile-id, data-horizon-id, or data-horizon-properties attributes. This may indicate an SVG was generated with an older version or by external code.`);
-    }
-}
 
 export function renderComparisonToDataURL(profiles: SoilProfileCollection, options: ComparisonRenderOptions): string {
     const svg = renderComparisonSVG(profiles, options);
@@ -207,10 +155,13 @@ export function renderComparisonToDataURL(profiles: SoilProfileCollection, optio
 export function renderComparisonHTML(profiles: SoilProfileCollection, options: ComparisonRenderOptions): string {
     const isDark = isDarkMode();
     const theme = isDark ? THEMES.dark : THEMES.light;
-    
+
+    const tooltipMode = options.tooltips?.mode ?? 'native';
+    const showTitle = tooltipMode === 'native' || tooltipMode === undefined;
+
     const profileWidth = options.profileWidth ?? 80;
-    const annotationWidth = options.annotations?.enabled && options.annotations?.position !== 'overlay' 
-        ? (options.annotations.width ?? 60) 
+    const annotationWidth = options.annotations?.enabled && options.annotations?.position !== 'overlay'
+        ? (options.annotations.width ?? 60)
         : 55;
     const columnWidth = profileWidth + annotationWidth;
     const marginTop = 20;
@@ -281,7 +232,9 @@ export function renderComparisonHTML(profiles: SoilProfileCollection, options: C
             }
 
             html += `<rect x="0" y="${y1}" width="${profileWidth}" height="${Math.max(hHeight, 1)}" fill="${color}" stroke="#333" stroke-width="0.5" data-profile-id="${profileIdAttr}" data-horizon-id="${horizonId}" data-horizon-properties="${horizonData}">`;
-            html += `<title>${escapeSvgText(`${hz.name} (${hz.top}-${hz.bottom}cm)`)}</title>`;
+            if (showTitle) {
+                html += `<title>${escapeSvgText(`${hz.name} (${hz.top}-${hz.bottom}cm)`)}</title>`;
+            }
             html += `</rect>`;
 
             if (hHeight > 12) {

@@ -62,6 +62,11 @@ export function formatHorizonProperties(
       if (value === undefined || value === null) {
         return; // skip undefined properties
       }
+    } else if (horizon.metadata && prop in horizon.metadata) {
+      value = horizon.metadata[prop];
+      if (value === undefined || value === null || value === 'NA') {
+        return; // skip undefined/NA properties from metadata
+      }
     } else {
       return; // skip unknown properties
     }
@@ -111,7 +116,8 @@ function propertyLabel(key: string): string {
     ksat: 'Ksat',
     munsellHue: 'Hue',
     munsellValue: 'Value',
-    munsellChroma: 'Chroma'
+    munsellChroma: 'Chroma',
+    narrative: 'Description'
   };
   return labels[key] || key;
 }

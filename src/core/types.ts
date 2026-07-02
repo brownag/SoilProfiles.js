@@ -4,7 +4,7 @@ export interface TooltipLine {
 }
 
 export interface TooltipConfig {
-  properties?: (keyof Horizon)[];
+  properties?: string[];
   customLabels?: Record<string, string>;
   customFormatters?: Record<string, (value: any) => string>;
   includeDepth?: boolean;
@@ -101,6 +101,7 @@ export interface StaticRenderOptions {
   tooltips?: RenderTooltipOptions;
   annotations?: RenderAnnotationsOptions;
   onHorizonHover?: (payload: HorizonEventPayload) => void;
+  onHorizonLeave?: (payload: HorizonEventPayload) => void;
   onHorizonClick?: (payload: HorizonEventPayload) => void;
   tooltipRenderer?: (horizon: Horizon) => HTMLElement;
 }
@@ -112,6 +113,7 @@ export interface InteractiveRenderOptions {
   tooltips?: RenderTooltipOptions;
   annotations?: RenderAnnotationsOptions;
   onHorizonHover?: (payload: HorizonEventPayload) => void;
+  onHorizonLeave?: (payload: HorizonEventPayload) => void;
   onHorizonClick?: (payload: HorizonEventPayload) => void;
   tooltipRenderer?: (horizon: Horizon) => HTMLElement;
 }
