@@ -10,10 +10,13 @@ const DIST_ENTRY_MODULES = [
   'core/tooltipUtils.js',
   'core/SoilProfile.js',
   'core/SoilProfileCollection.js',
+  'render/annotations.js',
+  'render/events.js',
   'render/safety.js',
   'render/static.js',
   'render/interactive.js',
   'render/comparison.js',
+  'render/thematicLegends.js',
   'render/three3d.js',
   'utils/munsell-approx.js'
 ];
