@@ -43,7 +43,7 @@
   },
   "type": "commonjs",
   "peerDependencies": {
-    "three": "^0.184.0"
+    "three": "^0.185.1"
   },
   "peerDependenciesMeta": {
     "three": {
@@ -58,7 +58,7 @@
     "esbuild": "^0.28.1",
     "jest": "^30.4.2",
     "jest-environment-jsdom": "^30.4.1",
-    "three": "^0.184.0",
+    "three": "^0.185.1",
     "ts-jest": "^29.4.11",
     "typescript": "^6.0.3"
   },
