@@ -11,25 +11,41 @@ import { munsellToRgbApprox } from '../utils/munsell-approx';
  */
 export function munsellToHex(
   hue: string | undefined,
-  value: number | undefined,
-  chroma: number | undefined
+  value: number | string | undefined,
+  chroma: number | string | undefined
 ): string | null {
   // Validate inputs
-  if (!hue || value === undefined || chroma === undefined) {
+  if (!hue || value === undefined) {
     return null;
   }
 
   // Normalize hue: remove spaces and convert to uppercase
   const normalizedHue = String(hue).trim().replace(/\s+/g, '').toUpperCase();
+  const isNeutral = normalizedHue === 'N';
 
-  // Validate hue format (should be digits followed by letters, e.g., "10YR", "5R")
-  if (!/^\d+\.?\d*[A-Z]+$/.test(normalizedHue)) {
+  // Validate hue format (should be digits followed by letters, e.g., "10YR", "5R", or "N" for neutral)
+  if (!isNeutral && !/^\d+\.?\d*[A-Z]+$/.test(normalizedHue)) {
+    return null;
+  }
+
+  // Resolve chroma: neutral hues can have empty, missing, or '-' chroma which defaults to 0
+  let cleanChroma = chroma;
+  if (isNeutral) {
+    if (chroma === undefined || chroma === null) {
+      cleanChroma = 0;
+    } else {
+      const trimmedChroma = String(chroma).trim();
+      if (trimmedChroma === '' || trimmedChroma === '-') {
+        cleanChroma = 0;
+      }
+    }
+  } else if (chroma === undefined) {
     return null;
   }
 
   // Validate value and chroma are positive numbers
   const numValue = Number(value);
-  const numChroma = Number(chroma);
+  const numChroma = Number(cleanChroma);
 
   if (isNaN(numValue) || isNaN(numChroma) || numChroma < 0) {
     return null;
@@ -56,8 +72,8 @@ export function munsellToHex(
  */
 export function isMunsellValid(
   hue: string | undefined,
-  value: number | undefined,
-  chroma: number | undefined
+  value: number | string | undefined,
+  chroma: number | string | undefined
 ): boolean {
   return munsellToHex(hue, value, chroma) !== null;
 }

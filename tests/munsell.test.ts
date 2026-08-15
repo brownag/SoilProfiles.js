@@ -77,6 +77,31 @@ describe('Munsell Color Conversion', () => {
       const result = munsellToHex('5R', 0, 0);
       expect(result === null || /^#[0-9a-f]{6}$/i.test(result || '')).toBe(true);
     });
+
+    it('should support neutral hues (gray shades) with various chroma formats', () => {
+      // "N 2/0"
+      const res1 = munsellToHex('N', 2, 0);
+      expect(res1).toBeTruthy();
+      expect(res1).toMatch(/^#[0-9a-f]{6}$/i);
+      // Verify it's a shade of gray (equal R, G, B components)
+      const r1 = res1!.slice(1, 3);
+      const g1 = res1!.slice(3, 5);
+      const b1 = res1!.slice(5, 7);
+      expect(r1).toBe(g1);
+      expect(g1).toBe(b1);
+
+      // "N 2/" (undefined chroma)
+      const res2 = munsellToHex('N', 2, undefined);
+      expect(res2).toBe(res1);
+
+      // "N 2/" (empty string chroma)
+      const res3 = munsellToHex('N', 2, '');
+      expect(res3).toBe(res1);
+
+      // "N 2/-" (dash chroma)
+      const res4 = munsellToHex('n', 2, '-'); // also test case insensitivity
+      expect(res4).toBe(res1);
+    });
   });
 
   describe('isMunsellValid function', () => {
