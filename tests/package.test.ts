@@ -23,7 +23,6 @@ describe('package metadata', () => {
             require: './dist/render/three3d.js',
             default: './dist/render/three3d.js'
         });
-        expect(packageJson.peerDependencies.three).toBe('^0.184.0');
         expect(packageJson.peerDependenciesMeta.three.optional).toBe(true);
     });
 

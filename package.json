@@ -51,6 +51,8 @@
     }
   },
   "devDependencies": {
+    "@emnapi/core": "^1.11.3",
+    "@emnapi/runtime": "^1.11.3",
     "@types/jest": "^30.0.0",
     "@types/node": "^26.1.0",
     "@types/three": "^0.185.4",
@@ -60,7 +62,7 @@
     "jest-environment-jsdom": "^30.4.1",
     "three": "^0.185.1",
     "ts-jest": "^29.4.11",
-    "typescript": "^7.0.2"
+    "typescript": "^6.0.3"
   },
   "allowScripts": {
     "canvas@3.2.3": true,
