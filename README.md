@@ -153,6 +153,15 @@ Manages a collection of soil profiles for grouped rendering and analysis.
 const collection = new SoilProfileCollection(profiles: SoilProfile[]);
 ```
 
+### Munsell Color Support
+
+The library provides conversion functions to translate Munsell colors into hex values:
+- **Standard Hues**: Supports standard hues (e.g., `"10YR"`, `"5R"`, `"2.5Y"`).
+- **Neutral Hues (Gray Shades)**: Fully supports neutral hues represented by `"N"`.
+  - Accepts formats like `"N 2/0"`, `"N 2/"`, or `"N 2/-"`.
+  - Missing, empty, or dash (`"-"`) chroma values for neutral hues default to `0`, producing pure shades of gray.
+  - Supports decimal values (e.g., `"N 2.5/"` or `"N 10/"` for near-white).
+
 ### Rendering Functions
 
 - **`renderStaticSVG()`**: Generate SVG strings for static rendering

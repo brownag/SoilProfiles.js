@@ -199,14 +199,21 @@ export function munsellToRgbApprox(munsellString: string): string | null {
     return null;
   }
 
-  const hue = parts[0];
+  const hue = parts[0].toUpperCase();
   const vc = parts[1].split('/');
   if (vc.length !== 2) {
     return null;
   }
 
   const value = parseFloat(vc[0]);
-  const chroma = parseFloat(vc[1]);
+  let chromaStr = vc[1].trim();
+  
+  const isNeutral = hue === 'N';
+  if (isNeutral && (chromaStr === '' || chromaStr === '-')) {
+    chromaStr = '0';
+  }
+  
+  const chroma = parseFloat(chromaStr);
 
   if (isNaN(value) || isNaN(chroma)) {
     return null;
@@ -216,21 +223,27 @@ export function munsellToRgbApprox(munsellString: string): string | null {
   const Y = munsellValueToY(value);
 
   // 2. Interpolate a* and b*
-  let lab_ab = interpolateLab(hue, chroma);
-  if (!lab_ab) {
-    const hueLetter = hue.match(/[A-Z]+/);
-    if(hueLetter) {
+  let lab_ab: { a: number; b: number } | null = null;
+  if (isNeutral) {
+    lab_ab = { a: 0, b: 0 };
+  } else {
+    lab_ab = interpolateLab(hue, chroma);
+    if (!lab_ab) {
+      const hueLetter = hue.match(/[A-Z]+/);
+      if (hueLetter) {
         for (const key in hueData) {
-            if (key.endsWith(hueLetter[0])) {
-                lab_ab = interpolateLab(key, chroma);
-                if(lab_ab) {
-                    break;
-                }
+          if (key.endsWith(hueLetter[0])) {
+            lab_ab = interpolateLab(key, chroma);
+            if (lab_ab) {
+              break;
             }
+          }
         }
+      }
     }
-    if (!lab_ab) return null;
   }
+
+  if (!lab_ab) return null;
 
   // L* is related to Y
   const L = 116 * Math.pow(Y, 1 / 3) - 16;
