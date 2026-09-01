@@ -26,6 +26,25 @@ npm install soilprofiles
 npm install three
 ```
 
+## Bundle Sizes
+
+| Bundle | Size | Gzipped |
+|--------|------|---------|
+| `dist/index.js` (CommonJS) | 2.5 KB | 0.7 KB |
+| `dist/index.esm.js` (ESM) | 77.9 KB | 16.8 KB |
+| `dist/index.umd.js` (UMD) | 84.0 KB | 17.5 KB |
+| `dist/index.umd.min.js` (minified) | 40.4 KB | 13.6 KB |
+
+**Which format to use:**
+- **Node.js/CommonJS**: `dist/index.js`
+- **Modern bundlers** (Vite, webpack, esbuild): `dist/index.esm.js`
+- **Browser `<script>`**: `dist/index.umd.min.js` (production)
+
+**Lightweight entry points** (modular imports):
+- `soilprofiles/core` — Data structures only
+- `soilprofiles/static` — SVG rendering
+- `soilprofiles/interactive` — Canvas/2D rendering
+
 ## Quick Start
 
 ### Create a Soil Profile
@@ -114,6 +133,183 @@ const phLegend = renderPhLegendSVG({ width: 300, height: 100 });
 
 document.getElementById('legends').innerHTML = textureLegend + phLegend;
 ```
+
+## Data Input Formats
+
+SoilProfiles.js supports multiple input formats for soil profile data.
+
+### Parser Imports
+
+Each parser can be imported directly from its subpath:
+
+```typescript
+import { parseOSDJson } from 'soilprofiles/parsers/osd';
+import { parseSimpleJson } from 'soilprofiles/parsers/simple';
+import { parseDelimitedProfile } from 'soilprofiles/parsers/delimited';
+```
+
+### OSD JSON (SoilKnowledgeBase Format)
+
+The OSD JSON format is used by the USDA Soil Knowledge Base and includes soil series information with detailed horizon data including Munsell color notation.
+
+```json
+{
+  "SERIES": "PAXTON",
+  "HORIZONS": [
+    {
+      "name": "A",
+      "top": 0,
+      "bottom": 20,
+      "moist_hue": "10YR",
+      "moist_value": 3,
+      "moist_chroma": 2,
+      "texture_class": "sandy loam"
+    },
+    {
+      "name": "Bw",
+      "top": 20,
+      "bottom": 50,
+      "moist_hue": "10YR",
+      "moist_value": 4,
+      "moist_chroma": 4,
+      "texture_class": "sandy loam"
+    },
+    {
+      "name": "C",
+      "top": 50,
+      "bottom": 100,
+      "moist_hue": "2.5Y",
+      "moist_value": 6,
+      "moist_chroma": 2,
+      "texture_class": "sandy loam"
+    }
+  ]
+}
+```
+
+**Usage:**
+```typescript
+import { parseOSDJson } from 'soilprofiles/parsers/osd';
+
+const profile = parseOSDJson(osdDocument);
+```
+
+### Simple JSON (Programmatic Format)
+
+The simple JSON format is designed for programmatic input with minimal required fields: profile `id`, and a `horizons` array where each horizon requires `name`, `top`, `bottom`, and `color` (as hex string).
+
+```json
+{
+  "id": "PROFILE_001",
+  "horizons": [
+    {
+      "name": "A",
+      "top": 0,
+      "bottom": 20,
+      "color": "#3b2f2f",
+      "texture": "loam"
+    },
+    {
+      "name": "Bw",
+      "top": 20,
+      "bottom": 50,
+      "color": "#8b5a2b",
+      "texture": "clay loam"
+    },
+    {
+      "name": "C",
+      "top": 50,
+      "bottom": 100,
+      "color": "#a0a0a0",
+      "texture": "sandy loam"
+    }
+  ]
+}
+```
+
+**Usage:**
+```typescript
+import { parseSimpleJson } from 'soilprofiles/parsers/simple';
+
+const profile = parseSimpleJson(jsonData);
+```
+
+### Delimiter-Separated Values (CSV/Pipe/Tab)
+
+Delimiter-separated format supports CSV, pipe-delimited (`|`), or tab-delimited data with configurable options. Each row represents a horizon with required columns: `name`, `top`, `bottom`, and `color`.
+
+```csv
+name,top,bottom,color
+A,0,20,#3b2f2f
+Bw,20,50,#8b5a2b
+C,50,100,#a0a0a0
+```
+
+**Usage:**
+```typescript
+import { parseDelimitedProfile } from 'soilprofiles/parsers/delimited';
+
+// CSV (comma-delimited)
+const profile = parseDelimitedProfile(csvString, 'PROFILE_ID', { delimiter: ',' });
+
+// Pipe-delimited
+const profilePipe = parseDelimitedProfile(pipeString, 'PROFILE_ID', { delimiter: '|' });
+
+// Tab-delimited
+const profileTab = parseDelimitedProfile(tabString, 'PROFILE_ID', { delimiter: '\t' });
+```
+
+### Extensible Fields
+
+All parsers support custom, extensible fields:
+
+**OSD Parser**: Additional OSD fields (those not explicitly processed) are automatically captured in `horizon.metadata`:
+
+```typescript
+const profile = parseOSDJson({
+  SERIES: "PAXTON",
+  HORIZONS: [
+    {
+      name: "A",
+      top: 0,
+      bottom: 20,
+      moist_hue: "10YR",
+      moist_value: 3,
+      moist_chroma: 2,
+      texture_class: "loam",
+      custom_field: "custom_value"  // Stored in horizon.metadata
+    }
+  ]
+});
+
+console.log(profile.horizons[0].metadata?.custom_field); // "custom_value"
+```
+
+**Simple JSON & Delimited Parsers**: Unknown fields are captured in `horizon.extra`:
+
+```typescript
+const profile = parseSimpleJson({
+  id: "PROFILE_001",
+  horizons: [
+    {
+      name: "A",
+      top: 0,
+      bottom: 20,
+      color: "#3b2f2f",
+      customProperty: "value"  // Stored in horizon.extra
+    }
+  ]
+});
+
+console.log(profile.horizons[0].extra?.customProperty); // "value"
+```
+
+All parsers automatically parse numeric fields when provided:
+- `clay`, `sand`, `silt` — soil texture fractions (%)
+- `ph` — soil pH (1:1 water)
+- `om` — organic matter (%)
+- `ksat` — saturated hydraulic conductivity
+- `munsellValue`, `munsellChroma` — color components
 
 ## 3D Visualization
 

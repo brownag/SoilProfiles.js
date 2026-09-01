@@ -33,6 +33,7 @@ export interface Horizon {
   texture?: string;
   metadata?: Record<string, any>;
   tooltipConfig?: TooltipConfig;
+  extra?: Record<string, any>;
 
   // Standardized soil properties
   clay?: number;    // clay percentage

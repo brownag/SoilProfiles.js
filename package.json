@@ -8,7 +8,47 @@
     ".": {
       "types": "./dist/index.d.ts",
       "require": "./dist/index.js",
+      "import": "./dist/index.esm.js",
       "default": "./dist/index.js"
+    },
+    "./static": {
+      "types": "./dist/static.d.ts",
+      "require": "./dist/static.js",
+      "import": "./dist/static.esm.js",
+      "default": "./dist/static.js"
+    },
+    "./interactive": {
+      "types": "./dist/interactive.d.ts",
+      "require": "./dist/interactive.js",
+      "import": "./dist/interactive.esm.js",
+      "default": "./dist/interactive.js"
+    },
+    "./core": {
+      "types": "./dist/core/index.d.ts",
+      "require": "./dist/core.js",
+      "import": "./dist/core.esm.js",
+      "default": "./dist/core.js"
+    },
+    "./parsers/osd": {
+      "types": "./dist/parsers/osd.d.ts",
+      "require": "./dist/parsers/osd.js",
+      "import": "./dist/parsers/osd.esm.js",
+      "default": "./dist/parsers/osd.js"
+    },
+    "./parsers/simple": {
+      "types": "./dist/parsers/simple.d.ts",
+      "require": "./dist/parsers/simple.js",
+      "import": "./dist/parsers/simple.esm.js",
+      "default": "./dist/parsers/simple.js"
+    },
+    "./parsers/delimited": {
+      "types": "./dist/parsers/delimited.d.ts",
+      "require": "./dist/parsers/delimited.js",
+      "import": "./dist/parsers/delimited.esm.js",
+      "default": "./dist/parsers/delimited.js"
+    },
+    "./umd": {
+      "default": "./dist/index.umd.min.js"
     },
     "./three3d": {
       "types": "./dist/render/three3d.d.ts",
@@ -18,7 +58,7 @@
   },
   "scripts": {
     "test": "jest",
-    "build": "tsc",
+    "build": "tsc && node esbuild.config.js",
     "demo:web": "node examples/serve-demo.js"
   },
   "keywords": [
