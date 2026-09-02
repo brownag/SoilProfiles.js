@@ -1,63 +1,69 @@
 import { SoilProfile } from '../core/SoilProfile';
-import { Horizon } from '../core/types';
-import { munsellToHex } from '../core/munsell';
+import { Horizon, SoilProfileConfig } from '../core/types';
+import { mapFieldsAndPassthrough, parseNumeric } from './utils';
 
 /**
- * Coerce value to number, fallback on NaN
+ * OSDParser config extends SoilProfileConfig with optional field mapping
  */
-function parseNumeric(value: any, fallback: number): number {
-  const numeric = typeof value === 'number' ? value : Number(value);
-  return Number.isFinite(numeric) ? numeric : fallback;
+export interface OSDParserConfig extends SoilProfileConfig {
+  fieldMapping?: Record<string, string>;
 }
 
 /**
- * Extract and convert Munsell color parameters to hex, with fallback
+ * OSD JSON parser with optional field mapping
  */
-function getHorizonColor(rawHorizon: any): string {
-  const moistHue = rawHorizon.moist_hue;
-  const moistValue = parseNumeric(rawHorizon.moist_value, NaN);
-  const moistChroma = parseNumeric(rawHorizon.moist_chroma, NaN);
+export class OSDParser {
+  constructor(private config?: OSDParserConfig) {}
 
-  // Try Munsell conversion
-  if (Number.isFinite(moistValue)) {
-    const hex = munsellToHex(moistHue, moistValue, moistChroma);
-    if (hex) return hex;
+  /**
+   * Parse raw horizons array into Horizon objects
+   * @param rawHorizons Array of raw horizon objects
+   * @param config Optional config (overrides constructor config)
+   * @returns Array of Horizon objects
+   */
+  parse(rawHorizons: any[], config?: OSDParserConfig): Horizon[] {
+    const cfg = config ?? this.config;
+    return rawHorizons
+      .map(raw => this.mapHorizon(raw, cfg))
+      .filter((h): h is Horizon => h !== undefined);
   }
 
-  // Fallback to neutral gray
-  return '#cccccc';
-}
-
-/**
- * Validate and convert a raw horizon to Horizon object, or undefined if invalid
- */
-function toProfileHorizon(rawHorizon: any): Horizon | undefined {
-  const top = parseNumeric(rawHorizon.top, NaN);
-  const bottom = parseNumeric(rawHorizon.bottom, NaN);
-
-  if (!Number.isFinite(top) || !Number.isFinite(bottom) || top >= bottom) {
-    return undefined;
-  }
-
-  // Fields explicitly processed by the parser
-  const standardFields = ['name', 'top', 'bottom', 'texture_class', 'moist_hue', 'moist_value', 'moist_chroma'];
-
-  // Collect all non-standard fields into metadata
-  const metadata: Record<string, any> = {};
-  for (const [key, value] of Object.entries(rawHorizon)) {
-    if (!standardFields.includes(key)) {
-      metadata[key] = value;
+  /**
+   * Map a single raw horizon to Horizon object
+   * @param raw Raw horizon data
+   * @param config Optional config or field mapping
+   * @returns Horizon object or undefined if invalid
+   */
+  private mapHorizon(raw: Record<string, any>, config?: OSDParserConfig): Horizon | undefined {
+    if (!raw || typeof raw !== 'object') {
+      return undefined;
     }
-  }
 
-  return {
-    name: String(rawHorizon.name ?? 'Unknown'),
-    top,
-    bottom,
-    color: getHorizonColor(rawHorizon),
-    texture: rawHorizon.texture_class ? String(rawHorizon.texture_class) : undefined,
-    metadata
-  };
+    const cfg = config ?? this.config;
+    const depthTopCol = cfg?.depthTopColumn ?? 'top';
+    const depthBottomCol = cfg?.depthBottomColumn ?? 'bottom';
+    const mapping = cfg?.fieldMapping;
+
+    const top = parseNumeric(raw[depthTopCol]);
+    const bottom = parseNumeric(raw[depthBottomCol]);
+
+    if (top === undefined || bottom === undefined || top >= bottom) {
+      return undefined;
+    }
+
+    const mapped = mapFieldsAndPassthrough(raw, mapping) as Horizon;
+
+    // Explicitly set depths
+    mapped.top = top;
+    mapped.bottom = bottom;
+
+    // Texture fallback: if texture is undefined and texture_class is present, map texture = texture_class
+    if (mapped.texture === undefined && (mapped as any).texture_class !== undefined) {
+      mapped.texture = (mapped as any).texture_class;
+    }
+
+    return mapped;
+  }
 }
 
 /**
@@ -67,26 +73,28 @@ function toProfileHorizon(rawHorizon: any): Horizon | undefined {
  * @returns SoilProfile instance
  *
  * Invalid horizons (missing/invalid depths) are skipped with console.warn()
- * Munsell conversion failures fall back to "#cccccc"
+ * Munsell conversion is NOT automatic; user can call munsellToHex() separately if needed
  */
 export function parseOSDJson(doc: any): SoilProfile {
-  const seriesName = doc.SERIES ?? 'Unknown';
-  const rawHorizons = doc.HORIZONS ?? [];
+  const seriesName = doc?.SERIES ?? 'Unknown';
+  const rawHorizons = doc?.HORIZONS ?? [];
 
   if (!Array.isArray(rawHorizons)) {
     console.warn(`OSD parser: HORIZONS is not an array for series "${seriesName}"`);
     return new SoilProfile(seriesName, []);
   }
 
+  const parser = new OSDParser();
   const horizons: Horizon[] = [];
+
   for (const raw of rawHorizons) {
-    const horizon = toProfileHorizon(raw);
+    const horizon = parser.parse([raw])?.[0];
     if (horizon) {
       horizons.push(horizon);
     } else {
-      const name = raw.name ?? 'unnamed';
-      const top = parseNumeric(raw.top, NaN);
-      const bottom = parseNumeric(raw.bottom, NaN);
+      const name = raw?.name ?? 'unnamed';
+      const top = parseNumeric(raw?.top) ?? NaN;
+      const bottom = parseNumeric(raw?.bottom) ?? NaN;
       console.warn(
         `OSD parser: Skipping horizon "${name}" (invalid depth: top=${top}, bottom=${bottom})`
       );
