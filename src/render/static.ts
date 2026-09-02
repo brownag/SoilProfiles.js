@@ -2,7 +2,7 @@ import { SoilProfileCollection } from '../core/SoilProfileCollection';
 import { SoilProfile } from '../core/SoilProfile';
 import { StaticRenderOptions, Horizon, RenderMode, RenderAnnotationsOptions } from '../core/types';
 import { escapeSvgAttribute, escapeSvgText, finiteNumber, sanitizeColor, generateHorizonId, serializeHorizonData, getSafeProfileId } from './safety';
-import { classifyTexture, getTextureColor } from '../core/texture';
+import { classifyTextureUSDA, getTextureColor } from '../core/texture';
 import { getPhColor, clampPh } from '../core/phScale';
 import { isDarkMode, THEMES, getTextColorForBackground, resolveHorizonColor } from '../core/colors';
 import { munsellToHex } from '../core/munsell';
@@ -69,7 +69,7 @@ function renderThumbnailMode(profiles: SoilProfileCollection, width: number, hei
 
             let color = sanitizeColor(horizon.color);
             if (horizon.clay !== undefined) {
-                color = getTextureColor(classifyTexture(horizon));
+                color = getTextureColor(classifyTextureUSDA(horizon));
             } else {
                 const munsellColor = munsellToHex(horizon.munsellHue, horizon.munsellValue, horizon.munsellChroma);
                 color = resolveHorizonColor(munsellColor, color);
@@ -128,7 +128,7 @@ function renderDepthMode(profiles: SoilProfileCollection, width: number, height:
             // Determine color: texture > munsell > fallback
             let color = sanitizeColor(horizon.color);
             if (horizon.clay !== undefined) {
-                const textureClass = classifyTexture(horizon);
+                const textureClass = classifyTextureUSDA(horizon);
                 color = getTextureColor(textureClass);
             } else {
                 const munsellColor = munsellToHex(horizon.munsellHue, horizon.munsellValue, horizon.munsellChroma);

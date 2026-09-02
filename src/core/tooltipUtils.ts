@@ -1,5 +1,5 @@
 import { Horizon, TooltipLine } from './types';
-import { classifyTexture, textureCodeToName } from './texture';
+import { classifyTextureUSDA, textureCodeToName } from './texture';
 
 export interface FormattedProperty {
   key: string;
@@ -50,7 +50,7 @@ export function formatHorizonProperties(
       value = horizon.name;
     } else if (prop === 'texture') {
       if (horizon.clay !== undefined) {
-        const textureCode = classifyTexture(horizon);
+        const textureCode = classifyTextureUSDA(horizon);
         value = textureCode ? textureCodeToName(textureCode) : 'Unknown';
       } else if (horizon.texture) {
         value = horizon.texture;

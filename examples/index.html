@@ -5,35 +5,94 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SoilProfiles.js Examples</title>
     <style>
-        body { font-family: sans-serif; padding: 20px; }
-        .container { border: 1px solid #ccc; width: 800px; height: 500px; margin-bottom: 20px; }
+        body { font-family: sans-serif; padding: 20px; background: #f5f5f5; }
+        .container { border: 1px solid #ccc; width: 800px; height: 450px; margin-bottom: 20px; background: #fff; border-radius: 4px; overflow: hidden; }
+        #svg-container { border: 1px solid #ccc; width: 800px; padding: 15px; margin-bottom: 20px; background: #fff; border-radius: 4px; }
+        h1 { color: #2c3e50; }
+        h2 { color: #34495e; margin-top: 25px; }
     </style>
 </head>
 <body>
-    <h1>SoilProfiles.js Example</h1>
+    <h1>SoilProfiles.js Examples</h1>
     
     <h2>2D Interactive Canvas</h2>
     <div id="canvas-container" class="container"></div>
 
-    <h2>3D Stub (Three.js)</h2>
+    <h2>3D Visualization (Three.js Hexagonal Monoliths)</h2>
+    <p style="color: #666; font-size: 13px; margin: -10px 0 10px 0;">Click and drag to orbit & rotate the hexagonal soil prisms. Hover over any horizon for soil property tooltips.</p>
     <div id="three-container" class="container"></div>
 
     <h2>Static SVG Render</h2>
     <div id="svg-container"></div>
 
-    <!-- For demo purposes, we assume a bundled script exists. But here we just use modules if building or placeholder -->
-    <script type="module">
-        import * as THREE from 'https://cdn.skypack.dev/three';
-        // In reality, this would be an import from the dist bundle.
-        // For the sake of the pure HTML example, you would build normally and link dist/index.js.
-        // E.g., import { SoilProfile, SoilProfileCollection, renderInteractive2D, renderInteractive3D, renderStaticSVG } from '../dist/index.js';
-        
-        async function run() {
-            // Placeholder: build the library using esbuild and serve it to test
-            document.getElementById('canvas-container').innerHTML = '<p>Run `npm run build` and include the generated bundle here to view interactive examples.</p>';
+    <!-- Load Three.js peer dependency for 3D demo -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Load SoilProfiles.js UMD bundle -->
+    <script src="../dist/index.umd.js"></script>
+
+    <script>
+        const {
+            SoilProfile,
+            SoilProfileCollection,
+            renderInteractive2D,
+            renderInteractive3D,
+            renderStaticSVG
+        } = window.soilprofiles;
+
+        const profiles = new SoilProfileCollection([
+            new SoilProfile('Paxton', [
+                { name: 'Ap', top: 0, bottom: 20, color: '#4a3728', texture: 'loam', clay: 14, sand: 45 },
+                { name: 'Bw1', top: 20, bottom: 45, color: '#8b5a2b', texture: 'fine sandy loam', clay: 12, sand: 55 },
+                { name: 'Bw2', top: 45, bottom: 65, color: '#a06d3b', texture: 'fine sandy loam', clay: 10, sand: 60 },
+                { name: 'Cd', top: 65, bottom: 150, color: '#b5a68a', texture: 'gravelly loam', clay: 8, sand: 68 }
+            ], { x: -30, y: 0, z: 0 }),
+            new SoilProfile('Woodbridge', [
+                { name: 'Ap', top: 0, bottom: 18, color: '#3d2e24', texture: 'fine sandy loam', clay: 15, sand: 50 },
+                { name: 'Bw', top: 18, bottom: 48, color: '#7a4e28', texture: 'fine sandy loam', clay: 13, sand: 52 },
+                { name: 'Bg', top: 48, bottom: 70, color: '#8f887b', texture: 'gravelly loam', clay: 16, sand: 48 },
+                { name: 'Cd', top: 70, bottom: 150, color: '#9e9687', texture: 'gravelly fine sandy loam', clay: 10, sand: 65 }
+            ], { x: 0, y: 0, z: 0 }),
+            new SoilProfile('Ridgebury', [
+                { name: 'A', top: 0, bottom: 15, color: '#2b211a', texture: 'fine sandy loam', clay: 16, sand: 46 },
+                { name: 'Bg', top: 15, bottom: 40, color: '#7d7a75', texture: 'fine sandy loam', clay: 14, sand: 50 },
+                { name: 'Cg', top: 40, bottom: 75, color: '#888480', texture: 'gravelly loam', clay: 12, sand: 56 },
+                { name: 'Cd', top: 75, bottom: 150, color: '#918b82', texture: 'gravelly sandy loam', clay: 8, sand: 70 }
+            ], { x: 30, y: 0, z: 0 })
+        ]);
+
+        // 1. Render 2D Interactive Canvas
+        const canvasContainer = document.getElementById('canvas-container');
+        renderInteractive2D(canvasContainer, profiles, {
+            interactive: true,
+            arrangement: 'centered',
+            width: 800,
+            height: 450,
+            mode: 'depth'
+        });
+
+        // 2. Render 3D Visualization
+        const threeContainer = document.getElementById('three-container');
+        if (typeof THREE !== 'undefined') {
+            try {
+                renderInteractive3D(threeContainer, profiles, {
+                    interactive: true,
+                    arrangement: 'centered',
+                    width: 800,
+                    height: 450
+                });
+            } catch (err) {
+                console.warn('3D WebGL rendering not available:', err.message);
+                threeContainer.innerHTML = '<p style="padding: 20px; color: #666;">WebGL is not supported or available in this environment.</p>';
+            }
         }
-        
-        run();
+
+        // 3. Render Static SVG
+        const svgContainer = document.getElementById('svg-container');
+        svgContainer.innerHTML = renderStaticSVG(profiles, {
+            width: 770,
+            height: 380,
+            mode: 'depth'
+        });
     </script>
 </body>
 </html>

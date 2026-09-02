@@ -1,7 +1,7 @@
 import { SoilProfileCollection } from '../core/SoilProfileCollection';
 import { ComparisonRenderOptions } from '../core/types';
 import { isDarkMode, THEMES, getTextColorForBackground, resolveHorizonColor } from '../core/colors';
-import { classifyTexture, getTextureColor } from '../core/texture';
+import { classifyTextureUSDA, getTextureColor } from '../core/texture';
 import { getPhColor } from '../core/phScale';
 import { stackLabels } from '../core/layout';
 import { escapeSvgText, escapeSvgAttribute, sanitizeColor, generateHorizonId, serializeHorizonData, getSafeProfileId } from './safety';
@@ -66,8 +66,11 @@ export function renderComparisonSVG(profiles: SoilProfileCollection, options: Co
         const xOffset = axisWidth + (i * columnWidth);
         svg += `<g transform="translate(${xOffset}, 0)">`;
 
+        const hasSideAnnotations = !!(options.annotations?.enabled && options.annotations?.position !== 'overlay');
+        const profileX = hasSideAnnotations ? 0 : Math.max(0, (columnWidth - profileWidth) / 2);
+
         // Profile ID
-        svg += `<text x="${profileWidth / 2}" y="${marginTop - 15}" text-anchor="middle" font-family="Arial" font-size="11" font-weight="bold" fill="${theme.textColor}">${escapeSvgText(profile.id)}</text>`;
+        svg += `<text x="${profileX + profileWidth / 2}" y="${marginTop - 15}" text-anchor="middle" font-family="Arial" font-size="11" font-weight="bold" fill="${theme.textColor}">${escapeSvgText(profile.id)}</text>`;
 
         const thinHorizons: any[] = [];
 
@@ -83,20 +86,20 @@ export function renderComparisonSVG(profiles: SoilProfileCollection, options: Co
             if (mode === 'properties' && hz.ph !== undefined) {
                 color = getPhColor(hz.ph);
             } else if (mode === 'texture' && hz.clay !== undefined) {
-                color = getTextureColor(classifyTexture(hz));
+                color = getTextureColor(classifyTextureUSDA(hz));
             } else {
                 const munsellColor = munsellToHex(hz.munsellHue, hz.munsellValue, hz.munsellChroma);
                 color = resolveHorizonColor(munsellColor, color);
             }
 
-            svg += `<rect x="0" y="${y1}" width="${profileWidth}" height="${Math.max(hHeight, 1)}" fill="${color}" stroke="#333" stroke-width="0.5" data-profile-id="${profileIdAttr}" data-horizon-id="${horizonId}" data-horizon-properties="${horizonData}">`;
+            svg += `<rect x="${profileX}" y="${y1}" width="${profileWidth}" height="${Math.max(hHeight, 1)}" fill="${color}" stroke="#333" stroke-width="0.5" data-profile-id="${profileIdAttr}" data-horizon-id="${horizonId}" data-horizon-properties="${horizonData}">`;
             if (showTitle) {
               svg += `<title>${escapeSvgText(hz.name)}</title>`;
             }
             svg += `</rect>`;
 
             if (hHeight > 12) {
-                svg += `<text x="${profileWidth / 2}" y="${y1 + hHeight / 2}" font-family="Arial" font-size="8" font-weight="bold" fill="${getTextColorForBackground(color)}" text-anchor="middle" dominant-baseline="middle">${escapeSvgText(hz.name)}</text>`;
+                svg += `<text x="${profileX + profileWidth / 2}" y="${y1 + hHeight / 2}" font-family="Arial" font-size="8" font-weight="bold" fill="${getTextColorForBackground(color)}" text-anchor="middle" dominant-baseline="middle">${escapeSvgText(hz.name)}</text>`;
             } else {
                 thinHorizons.push({ hz, yCenter: y1 + hHeight / 2 });
             }
@@ -106,14 +109,14 @@ export function renderComparisonSVG(profiles: SoilProfileCollection, options: Co
             const yPositions = thinHorizons.map(t => t.yCenter);
             const stackedY = stackLabels(yPositions, 11);
             thinHorizons.forEach((t, i) => {
-                svg += `<line x1="${profileWidth}" y1="${t.yCenter}" x2="${profileWidth + 8}" y2="${stackedY[i]}" stroke="${theme.dimColor}" stroke-width="0.5" />`;
-                svg += `<text x="${profileWidth + 10}" y="${stackedY[i]}" font-family="Arial" font-size="8" fill="${theme.textColor}" dominant-baseline="middle">${escapeSvgText(t.hz.name)}</text>`;
+                svg += `<line x1="${profileX + profileWidth}" y1="${t.yCenter}" x2="${profileX + profileWidth + 8}" y2="${stackedY[i]}" stroke="${theme.dimColor}" stroke-width="0.5" />`;
+                svg += `<text x="${profileX + profileWidth + 10}" y="${stackedY[i]}" font-family="Arial" font-size="8" fill="${theme.textColor}" dominant-baseline="middle">${escapeSvgText(t.hz.name)}</text>`;
             });
         }
 
         // Add annotations
         if (options.annotations?.enabled) {
-            svg += renderAnnotationsSVG(profile, 0, profileWidth, marginTop, depthScale, options.annotations, theme);
+            svg += renderAnnotationsSVG(profile, profileX, profileWidth, marginTop, depthScale, options.annotations, theme);
         }
 
         svg += `</g>`;
@@ -206,8 +209,12 @@ export function renderComparisonHTML(profiles: SoilProfileCollection, options: C
         if (profileMaxWidth) {
             colStyle += `max-width:${profileMaxWidth}px;`;
         }
+        // Calculate x offset to center profile within its column box
+        const hasSideAnnotations = !!(options.annotations?.enabled && options.annotations?.position !== 'overlay');
+        const profileX = hasSideAnnotations ? 0 : Math.max(0, (columnWidth - profileWidth) / 2);
+
         html += `<div style="${colStyle}">`;
-        html += `<div style="position:absolute; top:2px; left:0; width:${profileWidth}px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; font-size:10px; font-weight:bold; text-align:center; color:${theme.textColor}; z-index:10; background:${theme.bgColor};">${escapeSvgText(profile.id)}</div>`;
+        html += `<div style="position:absolute; top:2px; left:${profileX}px; width:${profileWidth}px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; font-size:10px; font-weight:bold; text-align:center; color:${theme.textColor}; z-index:10; background:${theme.bgColor};">${escapeSvgText(profile.id)}</div>`;
 
         html += `<svg viewBox="0 0 ${columnWidth} ${profileHeight}" style="width:100%; height:${profileHeight}px; margin-top:18px;">`;
         
@@ -225,20 +232,20 @@ export function renderComparisonHTML(profiles: SoilProfileCollection, options: C
             if (mode === 'properties' && hz.ph !== undefined) {
                 color = getPhColor(hz.ph);
             } else if (mode === 'texture' && hz.clay !== undefined) {
-                color = getTextureColor(classifyTexture(hz));
+                color = getTextureColor(classifyTextureUSDA(hz));
             } else {
                 const munsellColor = munsellToHex(hz.munsellHue, hz.munsellValue, hz.munsellChroma);
                 color = resolveHorizonColor(munsellColor, color);
             }
 
-            html += `<rect x="0" y="${y1}" width="${profileWidth}" height="${Math.max(hHeight, 1)}" fill="${color}" stroke="#333" stroke-width="0.5" data-profile-id="${profileIdAttr}" data-horizon-id="${horizonId}" data-horizon-properties="${horizonData}">`;
+            html += `<rect x="${profileX}" y="${y1}" width="${profileWidth}" height="${Math.max(hHeight, 1)}" fill="${color}" stroke="#333" stroke-width="0.5" data-profile-id="${profileIdAttr}" data-horizon-id="${horizonId}" data-horizon-properties="${horizonData}">`;
             if (showTitle) {
                 html += `<title>${escapeSvgText(`${hz.name} (${hz.top}-${hz.bottom}cm)`)}</title>`;
             }
             html += `</rect>`;
 
             if (hHeight > 12) {
-                html += `<text x="${profileWidth / 2}" y="${y1 + hHeight / 2}" font-size="8px" font-weight="bold" fill="${getTextColorForBackground(color)}" text-anchor="middle" dominant-baseline="middle">${escapeSvgText(hz.name)}</text>`;
+                html += `<text x="${profileX + profileWidth / 2}" y="${y1 + hHeight / 2}" font-size="8px" font-weight="bold" fill="${getTextColorForBackground(color)}" text-anchor="middle" dominant-baseline="middle">${escapeSvgText(hz.name)}</text>`;
             } else {
                 thinHorizons.push({ hz, yCenter: y1 + hHeight / 2 });
             }
@@ -248,14 +255,14 @@ export function renderComparisonHTML(profiles: SoilProfileCollection, options: C
             const yPositions = thinHorizons.map(t => t.yCenter);
             const stackedY = stackLabels(yPositions, 11);
             thinHorizons.forEach((t, i) => {
-                html += `<line x1="${profileWidth}" y1="${t.yCenter}" x2="${profileWidth + 8}" y2="${stackedY[i]}" stroke="${theme.dimColor}" stroke-width="0.5" />`;
-                html += `<text x="${profileWidth + 10}" y="${stackedY[i] + 3}" font-size="8px" fill="${theme.textColor}">${escapeSvgText(t.hz.name)}</text>`;
+                html += `<line x1="${profileX + profileWidth}" y1="${t.yCenter}" x2="${profileX + profileWidth + 8}" y2="${stackedY[i]}" stroke="${theme.dimColor}" stroke-width="0.5" />`;
+                html += `<text x="${profileX + profileWidth + 10}" y="${stackedY[i] + 3}" font-size="8px" fill="${theme.textColor}">${escapeSvgText(t.hz.name)}</text>`;
             });
         }
 
         // Add annotations
         if (options.annotations?.enabled) {
-            html += renderAnnotationsSVG(profile, 0, profileWidth, marginTop, depthScale, options.annotations, theme);
+            html += renderAnnotationsSVG(profile, profileX, profileWidth, marginTop, depthScale, options.annotations, theme);
         }
 
         html += `</svg></div>`;
