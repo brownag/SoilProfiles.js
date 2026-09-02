@@ -1,4 +1,5 @@
 export * from './core/types';
+export * from './core/depthRepair';
 export * from './core/SoilProfile';
 export * from './core/SoilProfileCollection';
 export * from './core/texture';

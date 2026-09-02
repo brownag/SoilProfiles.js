@@ -28,25 +28,20 @@ export interface HorizonEventPayload {
 export interface Horizon {
   top: number;
   bottom: number;
-  name: string;
-  color: string;
-  texture?: string;
   metadata?: Record<string, any>;
-  tooltipConfig?: TooltipConfig;
-  extra?: Record<string, any>;
+  [key: string]: any; // All other fields are first-class properties
+}
 
-  // Standardized soil properties
-  clay?: number;    // clay percentage
-  sand?: number;    // sand percentage
-  silt?: number;    // silt percentage
-  ph?: number;      // pH (1:1 water)
-  om?: number;       // organic matter %
-  ksat?: number;     // saturated hydraulic conductivity
+export interface SoilProfileConfig {
+  idColumn?: string;           // Profile ID field name (default: 'id')
+  depthTopColumn?: string;     // Horizon top depth field (default: 'top')
+  depthBottomColumn?: string;  // Horizon bottom depth field (default: 'bottom')
+  validateDepths?: boolean;    // Enable depth validation (default: true)
+  autoRepair?: boolean;        // Auto-repair invalid depths (default: true)
+}
 
-  // Munsell color system
-  munsellHue?: string;    // e.g., "10YR", "5R"
-  munsellValue?: number;  // Value component (0-10)
-  munsellChroma?: number; // Chroma component
+export interface SimpleParserConfig extends SoilProfileConfig {
+  fieldMapping?: Record<string, string>; // Raw column name → target Horizon property name
 }
 
 export interface PropertyMap {
