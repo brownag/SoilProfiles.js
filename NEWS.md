@@ -1,3 +1,8 @@
+# SoilProfiles.js 0.2.0 (2026-09-01)
+ * Added soil profile parsers for OSD (Official Soil Series Description) and delimited formats.
+ * Expanded bundle entry points for modular imports (`core`, `static`, `interactive`, `three3d`).
+ * Enhanced documentation and examples.
+
 # SoilProfiles.js 0.1.3 (2026-08-14)
  * Added support for neutral Munsell colors (gray shades) with hue "N" (e.g., "N 2/0", "N 2/", "N 2/-", "N 2.5/"), defaulting missing or dash ("-") chroma to 0.
 
