@@ -1,4 +1,5 @@
 import { HorizonEventPayload } from '../core/types';
+import { createDefaultTooltip } from '../core/tooltipUtils';
 
 /**
  * The horizon event callbacks shared by every render options interface.
@@ -9,22 +10,39 @@ export interface HorizonEventHandlers {
     onHorizonHover?: (payload: HorizonEventPayload) => void;
     onHorizonLeave?: (payload: HorizonEventPayload) => void;
     onHorizonClick?: (payload: HorizonEventPayload) => void;
+    tooltipRenderer?: (horizon: any) => HTMLElement;
+    tooltips?: { mode?: 'native' | 'custom' | 'data-only' };
 }
 
 export function hasHorizonEventHandlers(handlers: HorizonEventHandlers): boolean {
-    return !!(handlers.onHorizonHover || handlers.onHorizonLeave || handlers.onHorizonClick);
+    return !!(handlers.onHorizonHover || handlers.onHorizonLeave || handlers.onHorizonClick || handlers.tooltipRenderer || handlers.tooltips?.mode === 'custom');
 }
 
 /**
  * Wires hover/leave/click listeners onto every element in `container` carrying
  * the data-horizon-* attributes emitted by the SVG/HTML renderers.
  *
- * Hover fires on mouseenter and leave on mouseleave of the same element, so a
- * tooltip shown from onHorizonHover can always be hidden from onHorizonLeave.
+ * Automatically mounts a custom floating tooltip if tooltipRenderer is provided
+ * or if tooltips.mode is 'custom' (without custom event handlers).
  */
 export function attachHorizonEventListeners(container: HTMLElement, handlers: HorizonEventHandlers): void {
     const elements = container.querySelectorAll('[data-horizon-properties]');
     let skippedCount = 0;
+
+    // Set up DOM tooltip element if tooltipRenderer is provided or mode is custom
+    let tooltipEl: HTMLElement | null = null;
+    const isCustomMode = handlers.tooltips?.mode === 'custom';
+    if (handlers.tooltipRenderer || isCustomMode) {
+        container.style.position = container.style.position || 'relative';
+        tooltipEl = document.createElement('div');
+        tooltipEl.setAttribute('data-soilprofile-tooltip', 'true');
+        tooltipEl.style.position = 'absolute';
+        tooltipEl.style.pointerEvents = 'none';
+        tooltipEl.style.opacity = '0';
+        tooltipEl.style.transition = 'opacity 0.15s ease-out';
+        tooltipEl.style.zIndex = '1000';
+        container.appendChild(tooltipEl);
+    }
 
     elements.forEach(element => {
         if (!(element instanceof SVGElement)) return;
@@ -67,6 +85,36 @@ export function attachHorizonEventListeners(container: HTMLElement, handlers: Ho
             if (handlers.onHorizonLeave) {
                 element.addEventListener('mouseleave', (event) => {
                     handlers.onHorizonLeave!(payloadFor(event as MouseEvent));
+                });
+            }
+
+            // Automatic floating tooltip handling if tooltipRenderer is provided
+            if (tooltipEl) {
+                element.addEventListener('mouseenter', (event) => {
+                    const mouseEv = event as MouseEvent;
+                    const containerRect = container.getBoundingClientRect();
+                    tooltipEl!.replaceChildren();
+                    if (handlers.tooltipRenderer) {
+                        const customEl = handlers.tooltipRenderer(horizon);
+                        tooltipEl!.appendChild(customEl);
+                    } else if (isCustomMode) {
+                        const defaultEl = createDefaultTooltip(horizon);
+                        tooltipEl!.appendChild(defaultEl);
+                    }
+                    tooltipEl!.style.left = (mouseEv.clientX - containerRect.left + 15) + 'px';
+                    tooltipEl!.style.top = (mouseEv.clientY - containerRect.top + 15) + 'px';
+                    tooltipEl!.style.opacity = '1';
+                });
+
+                element.addEventListener('mousemove', (event) => {
+                    const mouseEv = event as MouseEvent;
+                    const containerRect = container.getBoundingClientRect();
+                    tooltipEl!.style.left = (mouseEv.clientX - containerRect.left + 15) + 'px';
+                    tooltipEl!.style.top = (mouseEv.clientY - containerRect.top + 15) + 'px';
+                });
+
+                element.addEventListener('mouseleave', () => {
+                    tooltipEl!.style.opacity = '0';
                 });
             }
         } catch {

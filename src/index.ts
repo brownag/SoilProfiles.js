@@ -1,4 +1,5 @@
 export * from './core/types';
+export * from './core/depthRepair';
 export * from './core/SoilProfile';
 export * from './core/SoilProfileCollection';
 export * from './core/texture';
@@ -6,10 +7,12 @@ export * from './core/phScale';
 export * from './core/layout';
 export * from './core/colors';
 export * from './core/mapping';
+export * from './core/munsell';
 export * from './core/tooltipUtils';
 export * from './render/static';
 export * from './render/interactive';
 export * from './render/comparison';
+export * from './render/annotations';
 export * from './render/events';
 export { renderComparisonSVG } from './render/comparison';
 export { renderTextureLegendSVG, renderPhLegendSVG, getThematicLegendMetadata } from './render/thematicLegends';

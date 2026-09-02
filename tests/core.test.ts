@@ -89,6 +89,26 @@ describe('SoilProfile data structures', () => {
          expect(filtered.profiles[0].id).toBe('p1');
     });
 
+    it('stores arbitrary fields first-class (bulk_density)', () => {
+        const h = { top: 0, bottom: 10, bulk_density: 1.3, name: 'A' };
+        const profile = new SoilProfile('test', [h]);
+        expect(profile.horizons[0].bulk_density).toBe(1.3);
+    });
+
+    it('stores arbitrary fields first-class (ec)', () => {
+        const h = { top: 0, bottom: 10, ec: 0.5, name: 'B' };
+        const profile = new SoilProfile('test', [h]);
+        expect(profile.horizons[0].ec).toBe(0.5);
+    });
+
+    it('stores multiple arbitrary fields together', () => {
+        const h = { top: 0, bottom: 10, bulk_density: 1.3, ec: 0.5, ca: 2.1, name: 'A' };
+        const profile = new SoilProfile('test', [h]);
+        expect(profile.horizons[0].bulk_density).toBe(1.3);
+        expect(profile.horizons[0].ec).toBe(0.5);
+        expect(profile.horizons[0].ca).toBe(2.1);
+    });
+
     describe('Depth validation (aqp-compatible checks)', () => {
         it('validateHorizonDepths detects missing top depth', () => {
             const result = validateHorizonDepths([
@@ -216,6 +236,28 @@ describe('SoilProfile data structures', () => {
             expect(horizon.top).toBe(0);
             expect(horizon.bottom).toBe(20);
         });
+
+        it('skips depth validation when validateDepths=false (inverted depths)', () => {
+            const invalid = [{ top: 10, bottom: 5, name: 'A', color: '#000' }];
+            const profile = new SoilProfile('test', invalid, undefined, {}, [], { validateDepths: false });
+            expect(profile.horizons[0].top).toBe(10);
+            expect(profile.horizons[0].bottom).toBe(5);
+        });
+
+        it('skips depth validation when validateDepths=false (missing top depth)', () => {
+            expect(() => {
+                new SoilProfile('test',
+                    [{ top: NaN, bottom: 10, name: 'A', color: '#000' }],
+                    undefined, {}, [], { validateDepths: false });
+            }).not.toThrow();
+        });
+
+        it('still repairs when validateDepths=false but autoRepair=true (default)', () => {
+            const input = [{ top: 10, bottom: 10, name: 'A', color: '#000' }];
+            const profile = new SoilProfile('test', input, undefined, {}, [], { validateDepths: false });
+            // autoRepair defaults to true, so zero-thickness should be expanded
+            expect(profile.horizons[0].bottom).toBe(11);
+        });
     });
 
     describe('repairHorizonDepths (old-style O horizon fix)', () => {
@@ -336,6 +378,50 @@ describe('SoilProfile data structures', () => {
             expect(p.horizons[0].name).toBe('Oe');
             // After repair, Oe should have top < bottom
             expect(p.horizons[0].top).toBeLessThan(p.horizons[0].bottom);
+        });
+    });
+
+    describe('autoRepair=false configuration', () => {
+        it('does not auto-repair zero-thickness when autoRepair=false', () => {
+            const input = [{ top: 10, bottom: 10, name: 'A', color: '#000' }];
+            const profile = new SoilProfile('test', input, undefined, {}, [], { autoRepair: false, validateDepths: false });
+            expect(profile.horizons[0].bottom).toBe(10);  // Not expanded
+        });
+
+        it('does not auto-repair old-style O horizon when autoRepair=false', () => {
+            const input = [
+                { top: 1, bottom: 0, name: 'Oe', color: '#000' },
+                { top: 0, bottom: 10, name: 'A', color: '#000' }
+            ];
+            const profile = new SoilProfile('test', input, undefined, {}, [], { autoRepair: false, validateDepths: false });
+            // After sorting by top depth: A (top: 0) comes first, then Oe (top: 1)
+            // Should NOT flip the inverted O horizon
+            const oeHorizon = profile.horizons.find(h => h.name === 'Oe');
+            expect(oeHorizon?.top).toBe(1);
+            expect(oeHorizon?.bottom).toBe(0);  // Still inverted, not repaired
+        });
+
+        it('does not fill missing bottom depth when autoRepair=false', () => {
+            const input = [
+                { top: 0, bottom: 10, name: 'A', color: '#000' },
+                { top: 10, bottom: NaN, name: 'C', color: '#000' }
+            ];
+            const profile = new SoilProfile('test', input, undefined, {}, [], { autoRepair: false, validateDepths: false });
+            expect(isNaN(profile.horizons[1].bottom)).toBe(true);  // Not filled
+        });
+
+        it('combines validateDepths=false and autoRepair=false together', () => {
+            const invalid = [
+                { top: 10, bottom: 5, name: 'A', color: '#000' },  // Inverted: not repaired, not validated
+                { top: 5, bottom: NaN, name: 'B', color: '#000' }  // Missing depth: not repaired, not validated
+            ];
+            const profile = new SoilProfile('test', invalid, undefined, {}, [], { validateDepths: false, autoRepair: false });
+            // After sorting by top depth: B (top: 5) comes first, then A (top: 10)
+            const horizonA = profile.horizons.find(h => h.name === 'A');
+            const horizonB = profile.horizons.find(h => h.name === 'B');
+            expect(horizonA?.top).toBe(10);
+            expect(horizonA?.bottom).toBe(5);  // Still inverted, not repaired
+            expect(horizonB && isNaN(horizonB.bottom)).toBe(true);  // Still missing, not filled
         });
     });
 });

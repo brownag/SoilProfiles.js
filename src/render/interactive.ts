@@ -2,7 +2,7 @@ import { SoilProfileCollection } from '../core/SoilProfileCollection';
 import { SoilProfile } from '../core/SoilProfile';
 import { InteractiveRenderOptions, TooltipLine, RenderAnnotationsOptions } from '../core/types';
 import { sanitizeColor, setTooltipContent } from './safety';
-import { classifyTexture, textureCodeToName, getTextureColor } from '../core/texture';
+import { classifyTextureUSDA, textureCodeToName, getTextureColor } from '../core/texture';
 import { getPhColor } from '../core/phScale';
 import { isDarkMode, THEMES, getTextColorForBackground, resolveHorizonColor } from '../core/colors';
 import { munsellToHex } from '../core/munsell';
@@ -114,7 +114,7 @@ export function renderInteractive2D(container: HTMLElement, profiles: SoilProfil
       if (mode === 'properties' && horizon.ph !== undefined) {
         color = getPhColor(horizon.ph);
       } else if (horizon.clay !== undefined && mode !== 'thumbnail') {
-        const textureClass = classifyTexture(horizon);
+        const textureClass = classifyTextureUSDA(horizon);
         color = getTextureColor(textureClass);
       } else if ((mode === 'depth' || mode === 'thumbnail') && horizon.clay === undefined) {
         const munsellColor = munsellToHex(horizon.munsellHue, horizon.munsellValue, horizon.munsellChroma);
@@ -138,7 +138,7 @@ export function renderInteractive2D(container: HTMLElement, profiles: SoilProfil
       ];
 
       if (horizon.clay !== undefined) {
-        const textureCode = classifyTexture(horizon);
+        const textureCode = classifyTextureUSDA(horizon);
         if (textureCode) {
           tooltipLines.push({ label: 'Texture', value: textureCodeToName(textureCode) });
         }

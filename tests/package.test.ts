@@ -13,6 +13,7 @@ describe('package metadata', () => {
         expect(packageJson.exports['.']).toEqual({
             types: './dist/index.d.ts',
             require: './dist/index.js',
+            import: './dist/index.esm.js',
             default: './dist/index.js'
         });
     });

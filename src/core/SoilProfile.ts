@@ -1,10 +1,21 @@
-import { Horizon, Position, DepthAnnotation } from './types';
+import { Horizon, Position, DepthAnnotation, SoilProfileConfig } from './types';
+import { repairDepths, DepthRepairOptions, validateDepthsStructured } from './depthRepair';
 
 interface RepairOptions {
   pattern?: RegExp;
   adj?: number;
 }
 
+export interface SoilProfile {
+  id: string;
+  horizons: Horizon[];
+  metadata?: Record<string, any>;
+}
+
+/**
+ * Backward-compatible wrapper around repairDepths.
+ * Uses default DepthRepairOptions for fillGaps and expandZeroThickness.
+ */
 export function repairHorizonDepths(
   horizons: Horizon[],
   options: RepairOptions = {}
@@ -12,135 +23,24 @@ export function repairHorizonDepths(
   const pattern = options.pattern ?? /^O/i;
   const adj = options.adj ?? 10;
 
-  // 1. Drop horizons where both top AND bottom are missing
-  let fixed = horizons.filter(h => !(isNaN(h.top) && isNaN(h.bottom)));
-  if (fixed.length === 0) return fixed;
-
-  // 2. Fix missing bottom depths:
-  //    - Non-deepest horizons: borrow top of next horizon
-  //    - Deepest horizon: top + adj
-  for (let i = 0; i < fixed.length; i++) {
-    if (isNaN(fixed[i].bottom)) {
-      fixed[i] = {
-        ...fixed[i],
-        bottom: i < fixed.length - 1 ? fixed[i + 1].top : fixed[i].top + adj
-      };
-    }
-  }
-
-  // 3. Detect old-style O horizons: name matches pattern AND bottom < top
-  const hasInvertedO = fixed.some(
-    h => pattern.test(h.name) && !isNaN(h.top) && !isNaN(h.bottom) && h.bottom < h.top
-  );
-
-  if (hasInvertedO) {
-    // Negate depths of inverted O horizons (e.g., top=1,bottom=0 → top=-1,bottom=0)
-    fixed = fixed.map(h =>
-      pattern.test(h.name) && h.bottom < h.top
-        ? { ...h, top: -h.top, bottom: -h.bottom }
-        : h
-    );
-
-    // Re-sort: negated O horizons now sort before depth-0 mineral horizons
-    fixed.sort((a, b) => a.top - b.top);
-
-    // Compute thicknesses (always positive after negation)
-    const thicknesses = fixed.map(h => Math.abs(h.bottom - h.top));
-
-    // Cumsum from min(abs(top)) to produce continuous non-negative depths
-    const minAbsTop = Math.min(...fixed.map(h => Math.abs(h.top)));
-    let cursor = minAbsTop;
-    fixed = fixed.map((h, i) => {
-      const newTop = cursor;
-      const newBottom = cursor + thicknesses[i];
-      cursor = newBottom;
-      return { ...h, top: newTop, bottom: newBottom };
-    });
-  }
-
-  // 4. Fix zero-thickness horizons (top === bottom) — expand bottom by 1
-  fixed = fixed.map(h =>
-    !isNaN(h.top) && !isNaN(h.bottom) && h.top === h.bottom
-      ? { ...h, bottom: h.bottom + 1 }
-      : h
-  );
-
-  // 5. Final sort by top depth
-  fixed.sort((a, b) => a.top - b.top);
-
-  return fixed;
+  return repairDepths(horizons, {
+    fillGaps: true,
+    fixOverlaps: true,
+    expandZeroThickness: true,
+    pattern,
+    adj
+  });
 }
 
 /**
- * Validates horizon depths before creating a SoilProfile.
- * Checks for missing depths, inverted depths, overlaps, and gaps.
- *
- * @param horizons Array of horizons to validate
- * @param profileId Optional profile ID for error messages
- * @returns Object with valid flag and details array
+ * Backward-compatible wrapper around validateDepths.
+ * Converts string[] error messages to {type, message}[] objects.
  */
 export function validateHorizonDepths(
   horizons: Horizon[],
   profileId: string = 'unknown'
 ): { valid: boolean; errors: Array<{ type: string; message: string }> } {
-  const errors: Array<{ type: string; message: string }> = [];
-
-  // Check for empty array
-  if (!horizons || horizons.length === 0) {
-    return { valid: true, errors };
-  }
-
-  // Check for NaN/undefined/missing depths
-  for (const h of horizons) {
-    if (h.top === null || h.top === undefined || isNaN(h.top)) {
-      errors.push({ type: 'missingDepth', message: `Missing or invalid top depth in horizon ${h.name}` });
-    }
-    if (h.bottom === null || h.bottom === undefined || isNaN(h.bottom)) {
-      errors.push({ type: 'missingDepth', message: `Missing or invalid bottom depth in horizon ${h.name}` });
-    }
-  }
-
-  if (errors.length > 0) {
-    return { valid: false, errors };
-  }
-
-  // Check for inverted depths (top >= bottom)
-  for (const h of horizons) {
-    if (h.top >= h.bottom) {
-      errors.push({ type: 'depthLogic', message: `Invalid horizon depth (top >= bottom) in ${h.name}` });
-    }
-  }
-
-  // Check sorting
-  const sorted = [...horizons].sort((a, b) => a.top - b.top);
-  for (let i = 0; i < horizons.length; i++) {
-    if (horizons[i].top !== sorted[i].top || horizons[i].bottom !== sorted[i].bottom) {
-      errors.push({ type: 'depthLogic', message: `Horizons not in top-depth order` });
-      break;
-    }
-  }
-
-  // Check for overlaps and gaps between adjacent horizons
-  for (let i = 0; i < horizons.length - 1; i++) {
-    const curr = horizons[i];
-    const next = horizons[i + 1];
-
-    if (curr.bottom > next.top) {
-      errors.push({
-        type: 'overlapOrGap',
-        message: `Overlap between ${curr.name} (ends at ${curr.bottom}cm) and ${next.name} (starts at ${next.top}cm)`
-      });
-    }
-
-    if (curr.bottom < next.top) {
-      const gap = next.top - curr.bottom;
-      errors.push({
-        type: 'overlapOrGap',
-        message: `Gap of ${gap}cm between ${curr.name} and ${next.name}`
-      });
-    }
-  }
-
+  const errors = validateDepthsStructured(horizons, profileId);
   return { valid: errors.length === 0, errors };
 }
 
@@ -148,24 +48,34 @@ export class SoilProfile {
   public id: string;
   public horizons: Horizon[];
   public position?: Position;
-  public metadata: Record<string, any>;
+  public metadata?: Record<string, any>;
   public depthAnnotations: DepthAnnotation[];
+  private validateDepths: boolean;
+  private autoRepair: boolean;
 
-  constructor(id: string, horizons: Horizon[] = [], position?: Position, metadata: Record<string, any> = {}, depthAnnotations: DepthAnnotation[] = []) {
+  constructor(id: string, horizons: Horizon[] = [], position?: Position, metadata: Record<string, any> = {}, depthAnnotations: DepthAnnotation[] = [], config?: SoilProfileConfig) {
     this.id = id;
-    this.horizons = repairHorizonDepths(horizons);
+    this.validateDepths = config?.validateDepths ?? true;
+    this.autoRepair = config?.autoRepair ?? true;
+    this.horizons = this.autoRepair ? repairHorizonDepths(horizons) : horizons;
     this.position = position;
     this.metadata = metadata;
     this.depthAnnotations = depthAnnotations;
     this.sortHorizonsByDepth();
-    this.validateDepths();
+    if (this.validateDepths) {
+      this.validateHorizonDepthsOrThrow();
+    }
   }
 
   public addHorizon(horizon: Horizon): void {
     this.horizons.push(horizon);
-    this.horizons = repairHorizonDepths(this.horizons);
+    if (this.autoRepair) {
+      this.horizons = repairHorizonDepths(this.horizons);
+    }
     this.sortHorizonsByDepth();
-    this.validateDepths();
+    if (this.validateDepths) {
+      this.validateHorizonDepthsOrThrow();
+    }
   }
 
   public getDepthRange(): { top: number; bottom: number } {
@@ -180,21 +90,25 @@ export class SoilProfile {
     this.horizons.sort((a, b) => a.top - b.top);
   }
 
-  private validateDepths(): void {
+  private collectDepthErrors(): Array<{ type: string; message: string }> {
+    const errors: Array<{ type: string; message: string }> = [];
+
     // Check for NaN/undefined/missing depths
     for (const h of this.horizons) {
       if (h.top === null || h.top === undefined || isNaN(h.top)) {
-        throw new Error(`Profile ${this.id}: Missing or invalid top depth in horizon ${h.name}`);
+        errors.push({ type: 'missingDepth', message: `Profile ${this.id}: Missing or invalid top depth in horizon ${h.name}` });
       }
       if (h.bottom === null || h.bottom === undefined || isNaN(h.bottom)) {
-        throw new Error(`Profile ${this.id}: Missing or invalid bottom depth in horizon ${h.name}`);
+        errors.push({ type: 'missingDepth', message: `Profile ${this.id}: Missing or invalid bottom depth in horizon ${h.name}` });
       }
     }
 
-    // Check for inverted depths (top >= bottom)
-    for (const h of this.horizons) {
-      if (h.top >= h.bottom) {
-        throw new Error(`Profile ${this.id}: Invalid horizon depth (top >= bottom) in ${h.name}`);
+    if (errors.length === 0) {
+      // Check for inverted depths (top >= bottom)
+      for (const h of this.horizons) {
+        if (h.top >= h.bottom) {
+          errors.push({ type: 'depthLogic', message: `Profile ${this.id}: Invalid horizon depth (top >= bottom) in ${h.name}` });
+        }
       }
     }
 
@@ -211,6 +125,15 @@ export class SoilProfile {
         const gap = next.top - curr.bottom;
         console.warn(`Profile ${this.id}: Gap of ${gap}cm between horizons ${curr.name} (ends at ${curr.bottom}cm) and ${next.name} (starts at ${next.top}cm)`);
       }
+    }
+
+    return errors;
+  }
+
+  private validateHorizonDepthsOrThrow(): void {
+    const errors = this.collectDepthErrors();
+    if (errors.length > 0) {
+      throw new Error(errors[0].message);
     }
   }
 }
