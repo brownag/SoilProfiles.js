@@ -1,9 +1,10 @@
-import { parseOSDJson } from '../src/parsers/osd';
-import { parseSimpleJson } from '../src/parsers/simple';
+import { parseOSDJson, OSDParser } from '../src/parsers/osd';
+import { parseSimpleJson, SimpleParser } from '../src/parsers/simple';
 import { SoilProfile } from '../src/core/SoilProfile';
 import { SoilProfileCollection } from '../src/core/SoilProfileCollection';
 import { Horizon } from '../src/core/types';
-import { DelimitedOptions } from '../src/parsers/delimited';
+import { DelimitedOptions, DelimitedParser } from '../src/parsers/delimited';
+import { mapFieldsAndPassthrough } from '../src/parsers/utils';
 
 // Interface for the dynamically imported delimited parser module
 interface DelimitedModule {
@@ -27,8 +28,104 @@ try {
 
 describe('Parser Test Suite', () => {
   // =============================================================================
+  // Parser Utilities (mapFieldsAndPassthrough)
+  // =============================================================================
+
+  describe('mapFieldsAndPassthrough', () => {
+    it('maps fields according to provided mapping and passes unmapped through', () => {
+      const raw = {
+        hzname: 'Ap',
+        top_depth: '0',
+        bottom_depth: '25',
+        clay_pct: '18.5',
+        description: 'Dark brown silt loam'
+      };
+      const mapping = {
+        hzname: 'name',
+        top_depth: 'top',
+        bottom_depth: 'bottom',
+        clay_pct: 'clay'
+      };
+
+      const result = mapFieldsAndPassthrough(raw, mapping);
+
+      expect(result).toEqual({
+        name: 'Ap',
+        top: 0,
+        bottom: 25,
+        clay: 18.5,
+        description: 'Dark brown silt loam'
+      });
+      expect(result.hzname).toBeUndefined();
+      expect(result.top_depth).toBeUndefined();
+      expect(result.bottom_depth).toBeUndefined();
+      expect(result.clay_pct).toBeUndefined();
+    });
+
+    it('coerces numeric strings on unmapped fields as well', () => {
+      const raw = {
+        name: 'Bt',
+        top: 25,
+        bottom: 50,
+        sand: '45.2',
+        silt: '35',
+        ph: '6.5',
+        notes: 'some text 123'
+      };
+
+      const result = mapFieldsAndPassthrough(raw);
+
+      expect(result).toEqual({
+        name: 'Bt',
+        top: 25,
+        bottom: 50,
+        sand: 45.2,
+        silt: 35,
+        ph: 6.5,
+        notes: 'some text 123'
+      });
+    });
+
+    it('preserves non-primitive or non-coercible values (booleans, objects, arrays)', () => {
+      const raw = {
+        name: 'C',
+        active: true,
+        flags: [1, 2, 3],
+        metadata: { source: 'lab' },
+        invalidNum: 'NaN',
+        emptyStr: ''
+      };
+
+      const result = mapFieldsAndPassthrough(raw);
+
+      expect(result.name).toBe('C');
+      expect(result.active).toBe(true);
+      expect(result.flags).toEqual([1, 2, 3]);
+      expect(result.metadata).toEqual({ source: 'lab' });
+      expect(result.invalidNum).toBe('NaN');
+      expect(result.emptyStr).toBe('');
+    });
+
+    it('handles empty or non-object raw inputs gracefully', () => {
+      expect(mapFieldsAndPassthrough({})).toEqual({});
+      expect(mapFieldsAndPassthrough(null as any)).toEqual({});
+      expect(mapFieldsAndPassthrough(undefined as any)).toEqual({});
+    });
+
+    it('handles mapping when mapped keys do not exist in raw object', () => {
+      const raw = { name: 'A', top: 0, bottom: 20 };
+      const mapping = { nonexistent: 'target' };
+
+      const result = mapFieldsAndPassthrough(raw, mapping);
+
+      expect(result).toEqual({ name: 'A', top: 0, bottom: 20 });
+    });
+  });
+
+  // =============================================================================
   // OSD JSON Parser Tests (W1.1)
   // =============================================================================
+
 
   describe('OSD JSON Parser (parseOSDJson)', () => {
     it('happy path: valid OSD document with multiple horizons', () => {
@@ -65,9 +162,9 @@ describe('Parser Test Suite', () => {
       expect(profile.horizons[0].name).toBe('A');
       expect(profile.horizons[0].top).toBe(0);
       expect(profile.horizons[0].bottom).toBe(20);
-      expect(profile.horizons[0].texture).toBe('loam');
+      expect(profile.horizons[0].texture_class).toBe('loam');
       expect(profile.horizons[1].name).toBe('B');
-      expect(profile.horizons[1].metadata?.pH_class).toBe('slightly acid');
+      expect(profile.horizons[1].pH_class).toBe('slightly acid');
     });
 
     it('happy path: single horizon OSD document', () => {
@@ -179,7 +276,7 @@ describe('Parser Test Suite', () => {
       warnSpy.mockRestore();
     });
 
-    it('Munsell color generation from valid moist_hue/value/chroma', () => {
+    it('Munsell fields are preserved as-is (not auto-converted to color)', () => {
       const osdDoc = {
         SERIES: 'MunsellTest',
         HORIZONS: [
@@ -196,18 +293,20 @@ describe('Parser Test Suite', () => {
 
       const profile = parseOSDJson(osdDoc);
 
-      expect(profile.horizons[0].color).toBeTruthy();
-      expect(profile.horizons[0].color).toMatch(/^#[0-9a-f]{6}$/i);
+      expect(profile.horizons[0].moist_hue).toBe('10YR');
+      expect(profile.horizons[0].moist_value).toBe(4);
+      expect(profile.horizons[0].moist_chroma).toBe(3);
+      expect(profile.horizons[0].color).toBeUndefined();
     });
 
-    it('fallback color on invalid Munsell data', () => {
+    it('missing Munsell data results in no color field', () => {
       const osdDoc = {
         SERIES: 'NoMunsell',
         HORIZONS: [
           {
             name: 'A',
             top: 0,
-            bottom: 15,
+            bottom: 15
             // No Munsell data
           }
         ]
@@ -215,27 +314,7 @@ describe('Parser Test Suite', () => {
 
       const profile = parseOSDJson(osdDoc);
 
-      expect(profile.horizons[0].color).toBe('#cccccc');
-    });
-
-    it('fallback color on invalid moist_value', () => {
-      const osdDoc = {
-        SERIES: 'InvalidValue',
-        HORIZONS: [
-          {
-            name: 'A',
-            top: 0,
-            bottom: 15,
-            moist_hue: '10YR',
-            moist_value: NaN,
-            moist_chroma: 3
-          }
-        ]
-      };
-
-      const profile = parseOSDJson(osdDoc);
-
-      expect(profile.horizons[0].color).toBe('#cccccc');
+      expect(profile.horizons[0].color).toBeUndefined();
     });
 
     it('SERIES name used as profile ID', () => {
@@ -258,7 +337,42 @@ describe('Parser Test Suite', () => {
       expect(profile.id).toBe('MyUniqueSeriesName');
     });
 
-    it('extensible metadata: extra OSD fields are captured in horizon.metadata', () => {
+    it('OSDParser: maps raw horizon fields with fieldMapping', () => {
+      const parser = new OSDParser({
+        fieldMapping: {
+          moist_hue: 'munsellHue',
+          moist_value: 'munsellValue',
+          moist_chroma: 'munsellChroma'
+        }
+      });
+      const horizons = parser.parse([{
+        top: 0,
+        bottom: 20,
+        moist_hue: '10YR',
+        moist_value: 4,
+        moist_chroma: 3
+      }]);
+
+      expect(horizons[0].munsellHue).toBe('10YR');
+      expect(horizons[0].munsellValue).toBe(4);
+      expect(horizons[0].munsellChroma).toBe(3);
+    });
+
+    it('OSDParser: unmapped fields pass through as first-class properties', () => {
+      const parser = new OSDParser();
+      const horizons = parser.parse([{
+        top: 0,
+        bottom: 20,
+        name: 'A',
+        structure: 'weak medium granular',
+        consistence: 'friable'
+      }]);
+
+      expect(horizons[0].structure).toBe('weak medium granular');
+      expect(horizons[0].consistence).toBe('friable');
+    });
+
+    it('extensible fields: extra OSD fields are preserved as first-class properties', () => {
       const osdDoc = {
         SERIES: 'ExtensibleTest',
         HORIZONS: [
@@ -280,9 +394,9 @@ describe('Parser Test Suite', () => {
       const profile = parseOSDJson(osdDoc);
 
       expect(profile.horizons.length).toBe(1);
-      expect(profile.horizons[0].metadata?.consistence).toBe('friable');
-      expect(profile.horizons[0].metadata?.pH_class).toBe('slightly acid');
-      expect(profile.horizons[0].metadata?.structure).toBe('weak medium granular');
+      expect(profile.horizons[0].consistence).toBe('friable');
+      expect(profile.horizons[0].pH_class).toBe('slightly acid');
+      expect(profile.horizons[0].structure).toBe('weak medium granular');
     });
   });
 
@@ -539,7 +653,44 @@ describe('Parser Test Suite', () => {
       expect(profile.horizons[0].munsellChroma).toBe(3);
     });
 
-    it('extensible extra fields: unknown fields stored in horizon.extra', () => {
+    it('SimpleParser: maps raw horizon fields with fieldMapping', () => {
+      const parser = new SimpleParser();
+      const horizons = parser.parse([
+        {
+          raw_name: 'A',
+          top: 0,
+          bottom: 20,
+          raw_color: '#8B7355'
+        }
+      ], {
+        fieldMapping: {
+          raw_name: 'name',
+          raw_color: 'color'
+        }
+      });
+
+      expect(horizons[0].name).toBe('A');
+      expect(horizons[0].top).toBe(0);
+      expect(horizons[0].bottom).toBe(20);
+      expect(horizons[0].color).toBe('#8B7355');
+    });
+
+    it('SimpleParser: unmapped fields pass through as first-class properties', () => {
+      const parser = new SimpleParser();
+      const horizons = parser.parse([
+        {
+          name: 'A',
+          top: 0,
+          bottom: 20,
+          color: '#8B7355',
+          custom_prop: 'value'
+        }
+      ]);
+
+      expect(horizons[0].custom_prop).toBe('value');
+    });
+
+    it('extensible fields: unknown fields stored as first-class properties', () => {
       const data = {
         id: 'EXTRA_FIELDS',
         horizons: [
@@ -558,13 +709,9 @@ describe('Parser Test Suite', () => {
 
       const profile = parseSimpleJson(data);
 
-      expect(profile.horizons[0].extra).toBeDefined();
-      expect(profile.horizons[0].extra?.customField).toBe('custom_value');
-      expect(profile.horizons[0].extra?.specialNote).toBe('important note');
-      expect(profile.horizons[0].extra?.numericExtra).toBe(42);
-      // Verify known field is not in extra
-      expect(profile.horizons[0].extra?.clay).toBeUndefined();
-      // Verify known field is in correct place
+      expect(profile.horizons[0].customField).toBe('custom_value');
+      expect(profile.horizons[0].specialNote).toBe('important note');
+      expect(profile.horizons[0].numericExtra).toBe(42);
       expect(profile.horizons[0].clay).toBe(18);
     });
   });
@@ -658,21 +805,61 @@ B,20,50,#A0826D,35,40,6.2`;
         expect(horizons[0].ph).toBe(6.5);
       });
 
-      it('field alias mapping: hzname → name, hzdept_r → top, hzdepb_r → bottom', () => {
-        const csvData = `hzname,hzdept_r,hzdepb_r,color,claytotal_r
+      it('DelimitedParser: maps raw NASIS columns with explicit fieldMapping', () => {
+        const csvData = `hzname,top,bottom,color,claytotal_r
 Ap,0,20,#8B7355,15
 B,20,50,#A0826D,35`;
 
-        const horizons = parseDelimitedHorizons(csvData, {
-          delimiter: ',',
-          hasHeader: true
+        const parser = new DelimitedParser({
+          fieldMapping: {
+            hzname: 'name',
+            claytotal_r: 'clay'
+          }
         });
+        const horizons = parser.parse(csvData);
 
-        // After mapping: hzname → name, hzdept_r → top, hzdepb_r → bottom, claytotal_r → clay
         expect(horizons[0].name).toBe('Ap');
         expect(horizons[0].top).toBe(0);
         expect(horizons[0].bottom).toBe(20);
         expect(horizons[0].clay).toBe(15);
+      });
+
+      it('DelimitedParser with no fieldMapping preserves column names as-is', () => {
+        const csvData = `top,bottom,name,color,clay
+0,20,A,#8B7355,18`;
+
+        const parser = new DelimitedParser();
+        const horizons = parser.parse(csvData);
+
+        expect(horizons[0].top).toBe(0);
+        expect(horizons[0].bottom).toBe(20);
+        expect(horizons[0].name).toBe('A');
+        expect(horizons[0].clay).toBe(18);
+      });
+
+      it('DelimitedParser: unmapped fields pass through as first-class properties', () => {
+        const csvData = `top,bottom,color,bulk_density,color_class
+0,10,#8B7355,1.3,dark`;
+
+        const parser = new DelimitedParser();
+        const horizons = parser.parse(csvData);
+
+        expect(horizons[0].bulk_density).toBe(1.3);
+        expect(horizons[0].color_class).toBe('dark');
+      });
+
+      it('DelimitedParser: mapped fields are renamed, unmapped pass through', () => {
+        const csvData = `raw_name,top,bottom,color,other_field
+Horizon_A,0,10,#8B7355,extra_value`;
+
+        const parser = new DelimitedParser({
+          fieldMapping: { raw_name: 'name' }
+        });
+        const horizons = parser.parse(csvData);
+
+        expect(horizons[0].name).toBe('Horizon_A');
+        expect(horizons[0].raw_name).toBeUndefined();
+        expect(horizons[0].other_field).toBe('extra_value');
       });
 
       it('invalid depth in row is skipped with warning', () => {
@@ -730,7 +917,7 @@ B,20,50,#A0826D`;
         expect(profile.horizons.length).toBe(2);
       });
 
-      it('extensible extra fields: unknown columns stored in horizon.extra', () => {
+      it('extensible fields: unknown columns stored as first-class properties', () => {
         const csvData = `name,top,bottom,color,clay,customField,specialNote
 A,0,20,#8B7355,18,extra_data,field note
 B,20,50,#A0826D,35,more data,another note`;
@@ -742,16 +929,12 @@ B,20,50,#A0826D,35,more data,another note`;
 
         expect(horizons.length).toBe(2);
         // Check first horizon
-        expect(horizons[0].extra).toBeDefined();
-        expect(horizons[0].extra?.customField).toBe('extra_data');
-        expect(horizons[0].extra?.specialNote).toBe('field note');
-        // Verify known field is not in extra
-        expect(horizons[0].extra?.clay).toBeUndefined();
-        // Verify known field is in correct place
+        expect(horizons[0].customField).toBe('extra_data');
+        expect(horizons[0].specialNote).toBe('field note');
         expect(horizons[0].clay).toBe(18);
         // Check second horizon
-        expect(horizons[1].extra?.customField).toBe('more data');
-        expect(horizons[1].extra?.specialNote).toBe('another note');
+        expect(horizons[1].customField).toBe('more data');
+        expect(horizons[1].specialNote).toBe('another note');
       });
     });
   } else {
@@ -857,8 +1040,8 @@ B,20,50,#A0826D,35,more data,another note`;
       expect(h.top).toBe(0);
       expect(h.bottom).toBe(20);
       expect(h.name).toBe('A');
-      expect(h.color).toBeTruthy();
-      expect(h.texture).toBe('loam');
+      expect(h.moist_hue).toBe('10YR');
+      expect(h.texture_class).toBe('loam');
     });
   });
 });

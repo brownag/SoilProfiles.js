@@ -1,5 +1,11 @@
 import { munsellToHex, isMunsellValid } from '../src/core/munsell';
 
+/**
+ * Munsell color conversion is now optional and user-driven (no longer automatic).
+ * These tests verify the conversion functions work correctly when explicitly called.
+ * Parsers now require opt-in configuration to apply Munsell conversion to color fields.
+ */
+
 describe('Munsell Color Conversion', () => {
   describe('munsellToHex function', () => {
     it('should convert valid Munsell color to hex', () => {
