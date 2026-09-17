@@ -3,26 +3,66 @@ const fs = require('fs');
 
 const buildConfigs = [
   {
+    entryPoints: ['src/index.ts'],
     format: 'esm',
     minify: false,
     outfile: 'dist/index.esm.js'
   },
   {
+    entryPoints: ['src/index.ts'],
     format: 'esm',
     minify: true,
     outfile: 'dist/index.esm.min.js'
   },
   {
+    entryPoints: ['src/index.ts'],
     format: 'iife',
     globalName: 'soilprofiles',
     minify: false,
     outfile: 'dist/index.umd.js'
   },
   {
+    entryPoints: ['src/index.ts'],
     format: 'iife',
     globalName: 'soilprofiles',
     minify: true,
     outfile: 'dist/index.umd.min.js'
+  },
+  {
+    entryPoints: ['src/core.ts'],
+    format: 'esm',
+    minify: false,
+    outfile: 'dist/core.esm.js'
+  },
+  {
+    entryPoints: ['src/static.ts'],
+    format: 'esm',
+    minify: false,
+    outfile: 'dist/static.esm.js'
+  },
+  {
+    entryPoints: ['src/interactive.ts'],
+    format: 'esm',
+    minify: false,
+    outfile: 'dist/interactive.esm.js'
+  },
+  {
+    entryPoints: ['src/parsers/osd.ts'],
+    format: 'esm',
+    minify: false,
+    outfile: 'dist/parsers/osd.esm.js'
+  },
+  {
+    entryPoints: ['src/parsers/simple.ts'],
+    format: 'esm',
+    minify: false,
+    outfile: 'dist/parsers/simple.esm.js'
+  },
+  {
+    entryPoints: ['src/parsers/delimited.ts'],
+    format: 'esm',
+    minify: false,
+    outfile: 'dist/parsers/delimited.esm.js'
   }
 ];
 
