@@ -1,4 +1,4 @@
-import { classifyTexture, textureCodeToName, getTextureColor } from '../core/texture';
+import { classifyTextureUSDA, textureCodeToName, getTextureColor } from '../core/texture';
 import { escapeSvgText } from './safety';
 
 /**
