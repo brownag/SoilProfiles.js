@@ -22,9 +22,9 @@ build: ## Compile TypeScript to dist/
 test: ## Run test suite
 	$(NPM) test -- --runInBand
 
-check: test build smoke ## Run core local verification
+check: build test smoke ## Run core local verification
 
-all: test build smoke install ## Run all checks
+all: build test smoke install ## Run all checks
 
 clean: ## Remove build artifacts
 	$(NODE) -e "const fs=require('fs'); fs.rmSync('dist',{recursive:true,force:true});"
