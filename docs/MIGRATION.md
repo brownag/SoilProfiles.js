@@ -1,50 +1,68 @@
 # Migration Guide: v0.1.x → v0.2.0+
 
-Welcome! This guide helps you migrate to SoilProfiles.js v0.2.0, which introduces a flexible schema for soil horizons and explicit field mapping for parsers. The changes make the library more adaptable to different data sources while maintaining backward compatibility.
+This guide details migrating to SoilProfiles.js v0.2.0, which introduces a flexible schema for soil horizons, modular entrypoint exports, and explicit field mapping for parsers.
 
 ## What Changed
 
 ### 1. Flexible Horizon Schema
-**v0.1.x** assumed hardcoded horizon fields (`name`, `color`, `texture`, etc.). **v0.2.0+** allows arbitrary fields on horizons—any property you need is now first-class.
+**v0.1.x** enforced hardcoded horizon properties (`name`, `color`, `texture`, `clay`, `sand`, etc.).  
+**v0.2.0+** allows arbitrary fields on horizons (`[key: string]: any`). Only `top` and `bottom` depths are required. Custom properties (such as bulk density, EC, or chemical extracts) are preserved as first-class properties.
 
 ### 2. Explicit Field Mapping for Parsers
-Instead of implicit NASIS field aliases, v0.2.0 parsers accept a `fieldMapping` config to map raw data columns to horizon properties.
+Instead of implicit NASIS column aliases, v0.2.0 parsers accept a `fieldMapping` configuration (`Record<string, string>`) to map source data columns to horizon properties. Unmapped columns pass through automatically.
 
-### 3. Optional Validation & Repair
-Depth validation and auto-repair are now configurable flags (both default to `true` for backward compatibility). You can disable them if your data is already clean.
+### 3. Modular Subpath Exports & Tree-Shaking
+v0.2.0 provides isolated entry points with dedicated CommonJS and ESM builds:
+- `soilprofiles` — Full package (all modules, static & interactive renderers, parsers)
+- `soilprofiles/core` — Lightweight data structures & utilities only (`SoilProfile`, `SoilProfileCollection`, depth repair, layout, color scales; ~2–3 KB, no rendering code)
+- `soilprofiles/static` — Server-safe static SVG rendering (`renderStaticSVG`, `renderComparisonSVG`)
+- `soilprofiles/interactive` — Browser canvas and interactive rendering (`renderInteractive2D`)
+- `soilprofiles/parsers/delimited` — Delimited CSV/TSV parser (`DelimitedParser`, `parseDelimitedProfile`, `parseDelimitedHorizons`)
+- `soilprofiles/parsers/osd` — USDA Soil Knowledge Base OSD JSON parser (`OSDParser`, `parseOSDJson`)
+- `soilprofiles/parsers/simple` — Minimal programmatic JSON parser (`SimpleParser`, `parseSimpleJson`)
+- `soilprofiles/three3d` — Optional 3D Three.js renderer
 
-### 4. Munsell Conversion is User-Driven
-The OSDParser no longer auto-converts Munsell hue/value/chroma to hex color. Instead, unmapped Munsell fields are preserved as-is, and you convert them explicitly if needed.
+### 4. Optional Validation & Repair
+Depth validation and auto-repair are now configurable via `SoilProfileConfig` (both default to `true` for backward compatibility):
+```typescript
+const profile = new SoilProfile(id, horizons, position, metadata, annotations, {
+  validateDepths: false,
+  autoRepair: false
+});
+```
+Standalone validation and repair utilities are also exported from `src/core/depthRepair.ts` (`repairDepths`, `validateDepths`, `validateDepthsStructured`).
+
+### 5. Texture Classification System
+Added `TEXTURE_SYSTEM = 'USDA'` constant and `classifyTextureUSDA()`. The legacy `classifyTexture()` function remains as a deprecated wrapper that logs a warning.
+
+### 6. User-Driven Munsell Conversion
+`OSDParser` preserves raw Munsell fields (`moist_hue`, `moist_value`, `moist_chroma`) without auto-converting them to hex colors. Convert them explicitly via `munsellToHex()` when hex color strings are required.
 
 ---
 
-## Old Code Example (v0.1.x)
+## Code Examples
 
-In v0.1.x, parsers assumed NASIS field names and converted Munsell automatically:
+### Delimited / CSV Parsing
 
+#### v0.1.x
 ```typescript
 import { parseDelimitedHorizons } from 'soilprofiles';
 
-// This worked in v0.1.x because parsers assumed specific field names
+// Implicitly assumed NASIS field names (hzname, hzdept_r, hzdepb_r)
 const csv = `hzname,hzdept_r,hzdepb_r,moist_hue,moist_value,moist_chroma
 A,0,20,10YR,4,3
 B,20,50,7.5YR,5,4`;
 
 const horizons = parseDelimitedHorizons(csv);
-// v0.1.x silently assumed: hzname → name, hzdept_r → top, hzdepb_r → bottom
-// and Munsell was auto-converted (if color wasn't provided)
 ```
 
----
-
-## New Code Example (v0.2.0+)
-
-In v0.2.0, you explicitly map fields using `fieldMapping`. Subpath imports (`soilprofiles/parsers/*`) are recommended for optimal modularity and tree-shaking, though root imports (`soilprofiles`) are also available:
+#### v0.2.0+
+Subpath imports (`soilprofiles/parsers/delimited`) are recommended for optimal tree-shaking, though root imports (`soilprofiles`) are also supported:
 
 ```typescript
-// Recommended: modular subpath import for optimal tree-shaking
+// Recommended: modular subpath import
 import { DelimitedParser } from 'soilprofiles/parsers/delimited';
-// Root import is also supported:
+// Root import also available:
 // import { DelimitedParser } from 'soilprofiles';
 
 const csv = `hzname,hzdept_r,hzdepb_r,color,moist_hue,moist_value,moist_chroma
@@ -71,27 +89,10 @@ const horizons = parser.parse(csv);
 // }
 ```
 
-**Key differences:**
-- `fieldMapping` explicitly renames columns (e.g., `hzname` → `name`)
-- All unmapped columns pass through as first-class properties
-- Munsell fields are NOT auto-converted; they're just data
-- Depth columns (`top`, `bottom`) can be renamed via `depthTopColumn` / `depthBottomColumn`
+### NASIS Data Mapping Example
 
----
+To parse NASIS horizon export data:
 
-## Field Mapping Migration
-
-### NASIS Parsing Example
-
-If you were parsing NASIS data in v0.1.x, here's how to migrate:
-
-**v0.1.x:**
-```typescript
-// Assumed NASIS field names implicitly
-const horizons = parseDelimitedHorizons(nasisCsv);
-```
-
-**v0.2.0+:**
 ```typescript
 import { DelimitedParser } from 'soilprofiles/parsers/delimited';
 
@@ -105,48 +106,39 @@ const parser = new DelimitedParser({
     silttotal_r: 'silt',
     ph1to1h2o_r: 'ph',
     om_r: 'om',
-    ksat_r: 'ksat',
-    // ...add more mappings as needed
-  },
-  // All unmapped NASIS columns (structure, consistence, etc.) pass through automatically
-});
-
-const horizons = parser.parse(nasisCsv);
-```
-
-### Unmapped Fields Pass Through
-
-Any column not in `fieldMapping` is added as-is to horizons. This means you don't need to map every field—just the ones you want renamed:
-
-```typescript
-const parser = new DelimitedParser({
-  fieldMapping: {
-    hzname: 'name'  // Only rename this one
+    ksat_r: 'ksat'
   }
 });
 
-const horizons = parser.parse(csv);
-// horizons will have:
-// - .name (from hzname)
-// - .top, .bottom (depth defaults if present in CSV)
-// - .structure (unmapped, passed through)
-// - .ph_class (unmapped, passed through)
-// - ... any other columns in the CSV
+const horizons = parser.parse(nasisCsv);
+// Unmapped columns (e.g. bulk density, structure) pass through automatically
+```
+
+### Custom Depth Column Names
+
+If your source data uses non-standard depth headers:
+
+```typescript
+const parser = new DelimitedParser({
+  depthTopColumn: 'upper_depth',
+  depthBottomColumn: 'lower_depth',
+  fieldMapping: {
+    layer_name: 'name'
+  }
+});
 ```
 
 ### OSD & Simple Parsers
 
-The same pattern applies to `OSDParser` and `SimpleParser`, which can also be imported via subpath or from the root:
-
 ```typescript
 // Recommended subpath imports:
 import { OSDParser } from 'soilprofiles/parsers/osd';
-// or: import { SimpleParser } from 'soilprofiles/parsers/simple';
+import { SimpleParser } from 'soilprofiles/parsers/simple';
 
-// Root imports are also available:
+// Root imports also available:
 // import { OSDParser, SimpleParser } from 'soilprofiles';
 
-const parser = new OSDParser({
+const osdParser = new OSDParser({
   fieldMapping: {
     moist_hue: 'munsellHue',
     moist_value: 'munsellValue',
@@ -154,81 +146,61 @@ const parser = new OSDParser({
   }
 });
 
-const horizons = parser.parse(osdData);
+const horizons = osdParser.parse(osdDocument.HORIZONS);
 ```
 
 ---
 
-## SoilProfile Config: Validation & Repair
+## SoilProfile Configuration: Validation & Repair
 
-By default, SoilProfile validates depths and auto-repairs overlaps/gaps. In v0.2.0, you can disable this:
+In v0.1.x, validation and gap/overlap repair were always executed during instantiation. In v0.2.0+, behavior is configurable via `SoilProfileConfig`:
 
-**v0.1.x:** Always validated and repaired
 ```typescript
-const profile = new SoilProfile('P001', horizons);
-```
+import { SoilProfile } from 'soilprofiles/core';
 
-**v0.2.0+:** Same behavior, but now configurable
-```typescript
-// Default: validateDepths=true, autoRepair=true (same as v0.1.x)
+// Default behavior: validateDepths=true, autoRepair=true (backward compatible with v0.1.x)
 const profile = new SoilProfile('P001', horizons);
 
-// Disable validation if your data is already clean
-const profile = new SoilProfile('P001', horizons, undefined, {}, [], {
+// Disable validation and auto-repair when working with pre-cleaned data:
+const cleanProfile = new SoilProfile('P001', horizons, undefined, {}, [], {
   validateDepths: false,
   autoRepair: false
 });
-
-// Or use the shorthand config
-const profile = new SoilProfile('P001', horizons, undefined, {}, [], {
-  validateDepths: false
-});
 ```
 
 ---
 
-## Deprecation Timeline
+## Deprecation & Removal Schedule
 
-| Version | Status | Notes |
-|---------|--------|-------|
-| **v0.1.x** | EOL | Last version with implicit field assumptions |
-| **v0.2.0–0.2.x** | Current | Backward-compatible; old APIs still work with warnings in dev |
-| **v1.0.0** | Future | Old function wrappers (`parseDelimitedHorizons`, etc.) removed; use classes instead |
-
-**What this means:**
-- v0.1.x code **will not work** in v0.2.0 without adding `fieldMapping`
-- v0.2.x code **will work in v1.0**, but function wrappers are gone (use classes)
-- Existing tests and examples work as-is in v0.2.0
+| API | Status in v0.2.0 | Recommended Replacement | Planned Removal |
+|-----|------------------|-------------------------|-----------------|
+| Implicit NASIS column aliases | Removed | Use `fieldMapping` config | Removed in v0.2.0 |
+| `classifyTexture()` | Deprecated (logs warning) | `classifyTextureUSDA()` | v1.0.0 |
+| `parseDelimitedProfile()` wrapper | Deprecated | `new DelimitedParser().parse()` | v1.0.0 |
+| `parseDelimitedHorizons()` wrapper | Deprecated | `new DelimitedParser().parse()` | v1.0.0 |
+| `parseOSDJson()` wrapper | Deprecated | `new OSDParser().parse()` | v1.0.0 |
+| `parseSimpleJson()` wrapper | Deprecated | `new SimpleParser().parse()` | v1.0.0 |
 
 ---
 
 ## FAQ
 
-### Q: Do I have to update my code?
-**A:** Not immediately if you're on v0.1.x. But v0.2.0 requires explicit `fieldMapping`; implicit NASIS names no longer work. Update your parsers when you upgrade.
+### Do I have to update my parser code?
+Yes, if your code relied on implicit NASIS column aliases. Add explicit `fieldMapping` when instantiating or calling parsers.
 
-### Q: Can I disable validation/repair?
-**A:** Yes! Pass `validateDepths: false` and/or `autoRepair: false` in the SoilProfile config. Both default to `true` for backward compatibility.
+### Which import paths should I use?
+- For maximum tree-shaking in modern bundlers: use subpaths (`soilprofiles/core`, `soilprofiles/static`, `soilprofiles/parsers/delimited`).
+- For quick prototyping or full bundle usage: `import { ... } from 'soilprofiles'` remains fully supported.
 
-### Q: My data has different column names. What do I do?
-**A:** Use `fieldMapping` to map your columns to standard names. Unmapped columns pass through unchanged.
+### Will Munsell colors be converted to hex automatically?
+No. Munsell values are retained as discrete fields. If hex colors are needed, call `munsellToHex(hue, value, chroma)` explicitly.
 
-### Q: Will Munsell colors be auto-converted anymore?
-**A:** No. In v0.2.0, Munsell fields (hue, value, chroma) are preserved as data. Convert them explicitly using `munsellToHex()` if you need hex color.
-
-### Q: The old function wrappers still work, right?
-**A:** Yes, in v0.2.x. They're marked for removal in v1.0. Prefer the class-based API: `new DelimitedParser({...}).parse(csv)` instead of `parseDelimitedHorizons(csv)`.
-
-### Q: Can I mix mapped and unmapped fields?
-**A:** Absolutely! Only map the fields you want renamed. Everything else passes through as-is.
-
-### Q: What if I have extra soil properties (bulk_density, ec, etc.)?
-**A:** They're now first-class! Just include them in your CSV or JSON, and they'll be available on horizon objects. No special handling needed.
+### How do unmapped properties behave?
+All unmapped columns and JSON attributes are preserved as first-class properties on the resulting `Horizon` object (with numeric strings coerced to numbers when applicable).
 
 ---
 
 ## See Also
-
+- [README.md](../README.md) — Comprehensive library documentation and API reference
 - [NEWS.md](../NEWS.md) — Release notes for v0.2.0
-- [README.md](../README.md) — Full library documentation
-- Tests in `tests/parsers.test.ts` — Working examples of fieldMapping usage
+- [tests/parsers.test.ts](../tests/parsers.test.ts) — Executable test cases demonstrating `fieldMapping` and custom property handling
