@@ -39,10 +39,13 @@ const horizons = parseDelimitedHorizons(csv);
 
 ## New Code Example (v0.2.0+)
 
-In v0.2.0, you explicitly map fields using `fieldMapping`:
+In v0.2.0, you explicitly map fields using `fieldMapping`. Subpath imports (`soilprofiles/parsers/*`) are recommended for optimal modularity and tree-shaking, though root imports (`soilprofiles`) are also available:
 
 ```typescript
-import { DelimitedParser } from 'soilprofiles';
+// Recommended: modular subpath import for optimal tree-shaking
+import { DelimitedParser } from 'soilprofiles/parsers/delimited';
+// Root import is also supported:
+// import { DelimitedParser } from 'soilprofiles';
 
 const csv = `hzname,hzdept_r,hzdepb_r,color,moist_hue,moist_value,moist_chroma
 A,0,20,#8B7355,10YR,4,3
@@ -90,7 +93,7 @@ const horizons = parseDelimitedHorizons(nasisCsv);
 
 **v0.2.0+:**
 ```typescript
-import { DelimitedParser } from 'soilprofiles';
+import { DelimitedParser } from 'soilprofiles/parsers/delimited';
 
 const parser = new DelimitedParser({
   fieldMapping: {
@@ -133,10 +136,15 @@ const horizons = parser.parse(csv);
 
 ### OSD & Simple Parsers
 
-The same pattern applies to `OSDParser` and `SimpleParser`:
+The same pattern applies to `OSDParser` and `SimpleParser`, which can also be imported via subpath or from the root:
 
 ```typescript
-import { OSDParser } from 'soilprofiles';
+// Recommended subpath imports:
+import { OSDParser } from 'soilprofiles/parsers/osd';
+// or: import { SimpleParser } from 'soilprofiles/parsers/simple';
+
+// Root imports are also available:
+// import { OSDParser, SimpleParser } from 'soilprofiles';
 
 const parser = new OSDParser({
   fieldMapping: {

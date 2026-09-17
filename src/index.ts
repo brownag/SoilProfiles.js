@@ -18,6 +18,29 @@ export { renderComparisonSVG } from './render/comparison';
 export { renderTextureLegendSVG, renderPhLegendSVG, getThematicLegendMetadata } from './render/thematicLegends';
 export type { Render3DCleanup } from './render/three3d';
 
+export {
+  DelimitedParser,
+  parseDelimitedHorizons,
+  parseDelimitedProfile,
+} from './parsers/delimited';
+export type {
+  DelimitedOptions,
+  DelimitedParserConfig,
+} from './parsers/delimited';
+
+export {
+  OSDParser,
+  parseOSDJson,
+} from './parsers/osd';
+export type {
+  OSDParserConfig,
+} from './parsers/osd';
+
+export {
+  SimpleParser,
+  parseSimpleJson,
+} from './parsers/simple';
+
 export function renderInteractive3D(
     container: HTMLElement,
     profiles: import('./core/SoilProfileCollection').SoilProfileCollection,
