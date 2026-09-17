@@ -319,9 +319,9 @@ const profileTab = parseDelimitedProfile(tabString, 'PROFILE_ID', { delimiter: '
 
 ### Extensible Fields
 
-All parsers support custom, extensible fields:
+All parsers support custom, extensible fields. Unmapped properties pass through directly as first-class properties on each horizon object:
 
-**OSD Parser**: Additional OSD fields (those not explicitly processed) are automatically captured in `horizon.metadata`:
+**OSD Parser**: Additional OSD fields (those not explicitly processed) pass through directly to the horizon:
 
 ```typescript
 const profile = parseOSDJson({
@@ -335,15 +335,15 @@ const profile = parseOSDJson({
       moist_value: 3,
       moist_chroma: 2,
       texture_class: "loam",
-      custom_field: "custom_value"  // Stored in horizon.metadata
+      custom_field: "custom_value"  // Passes through directly
     }
   ]
 });
 
-console.log(profile.horizons[0].metadata?.custom_field); // "custom_value"
+console.log(profile.horizons[0].custom_field); // "custom_value"
 ```
 
-**Simple JSON & Delimited Parsers**: Unknown fields are captured in `horizon.extra`:
+**Simple JSON & Delimited Parsers**: Unknown fields pass through directly to the horizon:
 
 ```typescript
 const profile = parseSimpleJson({
@@ -354,12 +354,12 @@ const profile = parseSimpleJson({
       top: 0,
       bottom: 20,
       color: "#3b2f2f",
-      customProperty: "value"  // Stored in horizon.extra
+      customProperty: "value"  // Passes through directly
     }
   ]
 });
 
-console.log(profile.horizons[0].extra?.customProperty); // "value"
+console.log(profile.horizons[0].customProperty); // "value"
 ```
 
 All parsers automatically parse numeric fields when provided:
