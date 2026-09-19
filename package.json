@@ -95,7 +95,7 @@
     "@emnapi/runtime": "^1.11.3",
     "@types/jest": "^30.0.0",
     "@types/node": "^26.1.0",
-    "@types/three": "^0.185.4",
+    "@types/three": "^0.186.0",
     "canvas": "^3.2.3",
     "esbuild": "^0.28.1",
     "jest": "^30.4.2",
