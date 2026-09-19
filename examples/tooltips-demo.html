@@ -186,7 +186,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>🌱 SoilProfiles.js - Tooltip & Metadata System</h1>
+        <h1>SoilProfiles.js - Tooltip & Metadata System</h1>
         <p class="subtitle">Interactive demonstrations of the tooltip and event callback features</p>
 
         <!-- Demo 1: Native Tooltips -->
@@ -291,11 +291,11 @@ renderStaticToDOM(el, collection, {
 
         <!-- Demo 5: Comparison Tooltips -->
         <div class="demo-section">
-            <h2>5. Comparison View with Tooltips</h2>
+            <h2>5. Comparison View with Tooltips & Events</h2>
             <div class="info-box">
                 <strong>Mode:</strong> 'custom'<br>
-                <strong>Behavior:</strong> Side-by-side profiles with event callbacks on each horizon.<br>
-                <strong>Use case:</strong> Comparing multiple soil profiles.
+                <strong>Behavior:</strong> Side-by-side centered profiles with hover tooltips and click callbacks on each horizon.<br>
+                <strong>Use case:</strong> Comparing multiple soil profiles with interactive inspection and selection.
             </div>
             <div class="demo-content">
                 <div id="demo5-comparison" style="width: 100%; min-height: 400px;"></div>
@@ -348,8 +348,9 @@ document.body.appendChild(tooltip);</div>
         </div>
     </div>
 
-    <script type="module">
-        import {
+    <script src="../dist/index.umd.js"></script>
+    <script>
+        const {
             SoilProfile,
             SoilProfileCollection,
             renderStaticToDOM,
@@ -358,7 +359,7 @@ document.body.appendChild(tooltip);</div>
             createDefaultTooltip,
             getHorizonDataFromElement,
             createTooltipLines
-        } from '../dist/index.js';
+        } = window.soilprofiles;
 
         // Sample data
         const sampleProfiles = new SoilProfileCollection([

@@ -1,4 +1,8 @@
 import { Horizon } from './types';
+import { deprecated } from './deprecation';
+
+/** USDA soil texture classification system identifier */
+export const TEXTURE_SYSTEM = 'USDA' as const;
 
 /**
  * Classifies soil texture based on sand, silt, and clay percentages using USDA texture triangle.
@@ -10,7 +14,7 @@ import { Horizon } from './types';
  * @param horizon Horizon data containing clay and sand (silt is calculated if not provided)
  * @returns USDA texture class code (si, sil, sicl, sic, c, cl, l, scl, sc, s, ls, sl) or null
  */
-export function classifyTexture(horizon: Partial<Horizon>): string | null {
+export function classifyTextureUSDA(horizon: Partial<Horizon>): string | null {
   const clay = horizon.clay;
   const sand = horizon.sand;
 
@@ -63,6 +67,12 @@ export function classifyTexture(horizon: Partial<Horizon>): string | null {
 
   return null;
 }
+
+/**
+ * Backward-compatible wrapper for classifyTextureUSDA().
+ * @deprecated Use classifyTextureUSDA() instead.
+ */
+export const classifyTexture = deprecated('classifyTexture', classifyTextureUSDA);
 
 /**
  * Converts a USDA texture class code to a human-readable name.

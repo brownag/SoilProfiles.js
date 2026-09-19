@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SoilProfiles.js Bundle Verification Test</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #f9f9f9;
+            color: #333;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .test-section {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .summary {
+            font-size: 18px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .summary.pass {
+            color: #27ae60;
+        }
+        .summary.fail {
+            color: #e74c3c;
+        }
+        .test-item {
+            padding: 8px 0;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid #ecf0f1;
+        }
+        .test-item:last-child {
+            border-bottom: none;
+        }
+        .test-status {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            margin-right: 12px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 24px;
+            font-weight: bold;
+            color: white;
+        }
+        .test-status.pass {
+            background: #27ae60;
+        }
+        .test-status.fail {
+            background: #e74c3c;
+        }
+        .test-label {
+            flex: 1;
+        }
+        .test-detail {
+            font-size: 12px;
+            color: #7f8c8d;
+            margin-left: 36px;
+            margin-top: 4px;
+        }
+        .info {
+            background: #e8f4f8;
+            border-left: 4px solid #3498db;
+            padding: 12px;
+            margin: 15px 0;
+            border-radius: 2px;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <h1>SoilProfiles.js Bundle Verification Test</h1>
+
+    <!-- Info section explaining the test -->
+    <div class="info">
+        This test verifies that the UMD bundle (<code>dist/index.umd.js</code>) loads correctly
+        and exports the expected API via <code>window.soilprofiles</code>.
+        Open this file in a browser or serve via HTTP.
+    </div>
+
+    <!-- Results container -->
+    <div class="test-section">
+        <div id="results">
+            <div class="summary">Loading bundle...</div>
+        </div>
+    </div>
+
+    <!-- Load the UMD bundle (unminified for easier debugging) -->
+    <script src="../dist/index.umd.js"></script>
+
+    <!-- Demo section container -->
+    <div id="demo-section" style="display: none;">
+        <div class="test-section">
+            <h2 style="margin-top: 0;">Live Demo: Soil Profile Rendering</h2>
+            <div id="demo-content" style="background: #f5f5f5; padding: 20px; border-radius: 4px; margin: 15px 0; overflow-x: auto;"></div>
+        </div>
+    </div>
+
+    <!-- Verify bundle exports and run demo -->
+    <script>
+        // Helper function to check if a value is a function (including class constructors)
+        function isFunction(value) {
+            return typeof value === 'function';
+        }
+
+        // Test data: each test checks for a named export and its expected type
+        const tests = [
+            {
+                name: 'window.soilprofiles exists',
+                check: () => typeof window.soilprofiles === 'object',
+                detail: 'Global soilprofiles object should be accessible'
+            },
+            {
+                name: 'SoilProfile (class)',
+                check: () => isFunction(window.soilprofiles?.SoilProfile),
+                detail: 'Class constructor for creating soil profile instances'
+            },
+            {
+                name: 'SoilProfileCollection (class)',
+                check: () => isFunction(window.soilprofiles?.SoilProfileCollection),
+                detail: 'Class constructor for managing multiple profiles'
+            },
+            {
+                name: 'renderStaticSVG (function)',
+                check: () => isFunction(window.soilprofiles?.renderStaticSVG),
+                detail: 'Function for rendering profiles as static SVG'
+            },
+            {
+                name: 'renderInteractive2D (function)',
+                check: () => isFunction(window.soilprofiles?.renderInteractive2D),
+                detail: 'Function for rendering profiles in interactive 2D canvas'
+            }
+        ];
+
+        // Run all tests and collect results
+        const results = tests.map(test => ({
+            ...test,
+            passed: test.check()
+        }));
+
+        // Calculate summary
+        const passCount = results.filter(r => r.passed).length;
+        const totalCount = results.length;
+        const allPassed = passCount === totalCount;
+
+        // Render results to the page
+        const resultsDiv = document.getElementById('results');
+        resultsDiv.innerHTML = '';
+
+        // Add summary
+        const summaryDiv = document.createElement('div');
+        summaryDiv.className = `summary ${allPassed ? 'pass' : 'fail'}`;
+        summaryDiv.textContent = `API Checks: ${passCount}/${totalCount} passed`;
+        resultsDiv.appendChild(summaryDiv);
+
+        // Add individual test results
+        const listDiv = document.createElement('div');
+        results.forEach(result => {
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'test-item';
+
+            const statusSpan = document.createElement('div');
+            statusSpan.className = `test-status ${result.passed ? 'pass' : 'fail'}`;
+            statusSpan.textContent = result.passed ? '✓' : '✗';
+
+            const labelSpan = document.createElement('span');
+            labelSpan.className = 'test-label';
+            labelSpan.textContent = result.name;
+
+            itemDiv.appendChild(statusSpan);
+            itemDiv.appendChild(labelSpan);
+
+            if (!result.passed || result.detail) {
+                const detailDiv = document.createElement('div');
+                detailDiv.className = 'test-detail';
+                detailDiv.textContent = result.detail;
+                itemDiv.appendChild(detailDiv);
+            }
+
+            listDiv.appendChild(itemDiv);
+        });
+
+        resultsDiv.appendChild(listDiv);
+
+        // Live demo: create and render a soil profile
+        if (allPassed) {
+            try {
+                const { SoilProfile, SoilProfileCollection, renderStaticSVG, munsellToHex } = window.soilprofiles;
+
+                const horizons = [
+                    { name: 'Ap', top: 0, bottom: 25, moist_hue: '10YR', moist_value: 3, moist_chroma: 3, texture: 'sandy loam' },
+                    { name: 'Bw', top: 25, bottom: 75, moist_hue: '7.5YR', moist_value: 4, moist_chroma: 4, texture: 'sandy loam' },
+                    { name: 'Cd', top: 75, bottom: 152, moist_hue: '2.5Y', moist_value: 6, moist_chroma: 4, texture: 'sandy loam' }
+                ].map(h => ({ ...h, color: munsellToHex(h.moist_hue, h.moist_value, h.moist_chroma) || '#cccccc' }));
+
+                const svg = renderStaticSVG(
+                    new SoilProfileCollection([new SoilProfile('PAXTON', horizons)]),
+                    { width: 300, height: 400, mode: 'depth' }
+                );
+
+                document.getElementById('demo-section').style.display = 'block';
+                document.getElementById('demo-content').innerHTML = svg;
+
+                const result = document.createElement('div');
+                result.className = 'test-item';
+                result.innerHTML = '<div class="test-status pass">✓</div><span class="test-label">Live rendering demo (PAXTON profile)</span>';
+                listDiv.appendChild(result);
+            } catch (e) {
+                document.getElementById('demo-section').style.display = 'block';
+                document.getElementById('demo-content').innerHTML = `<p style="color: #e74c3c;">Error: ${e.message}</p>`;
+            }
+        }
+
+        // Log results to console
+        console.log('Bundle verification results:', results);
+    </script>
+</body>
+</html>

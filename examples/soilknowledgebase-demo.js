@@ -7,6 +7,8 @@ const DIST_ENTRY_MODULES = [
   'core/munsell.js',
   'core/phScale.js',
   'core/texture.js',
+  'core/deprecation.js',
+  'core/depthRepair.js',
   'core/tooltipUtils.js',
   'core/SoilProfile.js',
   'core/SoilProfileCollection.js',
