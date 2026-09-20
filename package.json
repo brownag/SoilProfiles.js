@@ -103,7 +103,7 @@
     "jest-util": "^30.5.1",
     "three": "^0.186.0",
     "ts-jest": "^29.4.11",
-    "typescript": "^6.0.3"
+    "typescript": "^7.0.2"
   },
   "allowScripts": {
     "canvas@3.2.3": true,
