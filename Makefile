@@ -24,7 +24,7 @@ test: ## Run test suite
 
 check: build test smoke ## Run core local verification
 
-all: build test smoke install ## Run all checks
+all: install build test smoke ## Run all checks
 
 clean: ## Remove build artifacts
 	$(NODE) -e "const fs=require('fs'); fs.rmSync('dist',{recursive:true,force:true});"
