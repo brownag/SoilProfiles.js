@@ -1,6 +1,6 @@
 {
   "name": "soilprofiles",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "TypeScript library for managing and rendering soil profile data in the browser or Node.js",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -96,6 +96,8 @@
     "@types/jest": "^30.0.0",
     "@types/node": "^26.1.0",
     "@types/three": "^0.186.0",
+    "@typescript/typescript6": "npm:typescript@^6.0.3",
+    "@typescript/native": "npm:typescript@^7.0.0",
     "canvas": "^3.2.3",
     "esbuild": "^0.28.1",
     "jest": "^30.5.2",
@@ -103,7 +105,7 @@
     "jest-util": "^30.5.1",
     "three": "^0.186.0",
     "ts-jest": "^29.4.11",
-    "typescript": "^6.0.3"
+    "typescript": "npm:@typescript/typescript6@^6.0.3"
   },
   "allowScripts": {
     "canvas@3.2.3": true,
