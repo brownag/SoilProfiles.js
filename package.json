@@ -83,7 +83,7 @@
   },
   "type": "commonjs",
   "peerDependencies": {
-    "three": "^0.186.0"
+    "three": "^0.187.0"
   },
   "peerDependenciesMeta": {
     "three": {
@@ -95,7 +95,7 @@
     "@emnapi/runtime": "^1.11.3",
     "@types/jest": "^30.0.0",
     "@types/node": "^26.1.0",
-    "@types/three": "^0.186.0",
+    "@types/three": "^0.187.0",
     "@typescript/typescript6": "npm:typescript@^6.0.3",
     "@typescript/native": "npm:typescript@^7.0.0",
     "canvas": "^3.2.3",
@@ -103,7 +103,7 @@
     "jest": "^30.5.2",
     "jest-environment-jsdom": "^30.4.1",
     "jest-util": "^30.5.1",
-    "three": "^0.186.0",
+    "three": "^0.187.0",
     "ts-jest": "^29.4.11",
     "typescript": "npm:@typescript/typescript6@^6.0.3"
   },
