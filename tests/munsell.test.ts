@@ -149,54 +149,30 @@ describe('Munsell Color Conversion', () => {
     });
 
     it('should closely approximate reference sRGB values across common soil hues', () => {
-      const dataPath = path.join(__dirname, '..', 'soilprofiles-munsell', 'munsell-data.json');
-      const raw = readFileSync(dataPath, 'utf8');
-      const soilHues = new Set(['2.5YR', '5YR', '7.5YR', '10YR', '2.5Y', '5Y']);
-      const entryRegex =
-        /\{\s*hue:\s*'([^']+)',\s*value:\s*([\d.]+),\s*chroma:\s*([\d.]+),\s*r:\s*([\d.]+),\s*g:\s*([\d.]+),\s*b:\s*([\d.]+)\s*\}/g;
+      // Reference sRGB (0-1) for 2.5YR-5Y, value 2-8, chroma 1-8: [hue, value, chroma, r, g, b]
+      const dataPath = path.join(__dirname, 'fixtures', 'munsell-reference-soil.json');
+      const samples: [string, number, number, number, number, number][] = JSON.parse(
+        readFileSync(dataPath, 'utf8')
+      );
 
-      interface RefEntry {
-        hue: string;
-        value: number;
-        chroma: number;
-        r: number;
-        g: number;
-        b: number;
-      }
+      expect(samples.length).toBe(380);
 
-      const samples: RefEntry[] = [];
-      let match: RegExpExecArray | null;
-      while ((match = entryRegex.exec(raw)) !== null) {
-        const hue = match[1];
-        const value = Number(match[2]);
-        const chroma = Number(match[3]);
-        if (soilHues.has(hue) && value >= 2 && value <= 8 && chroma >= 1 && chroma <= 8) {
-          samples.push({
-            hue,
-            value,
-            chroma,
-            r: Number(match[4]),
-            g: Number(match[5]),
-            b: Number(match[6]),
-          });
+      let totalChannelError = 0;
+      let maxChannelError = 0;
+      for (const [hue, value, chroma, ...ref] of samples) {
+        const hex = munsellToHex(hue, value, chroma);
+        expect(hex).toMatch(/^#[0-9a-f]{6}$/i);
+        for (let i = 0; i < 3; i++) {
+          const err = Math.abs(parseInt(hex!.slice(1 + 2 * i, 3 + 2 * i), 16) / 255 - ref[i]);
+          totalChannelError += err;
+          maxChannelError = Math.max(maxChannelError, err);
         }
       }
 
-      expect(samples.length).toBeGreaterThan(0);
-
-      let totalChannelError = 0;
-      for (const sample of samples) {
-        const hex = munsellToHex(sample.hue, sample.value, sample.chroma);
-        expect(hex).toMatch(/^#[0-9a-f]{6}$/i);
-        const r = parseInt(hex!.slice(1, 3), 16) / 255;
-        const g = parseInt(hex!.slice(3, 5), 16) / 255;
-        const b = parseInt(hex!.slice(5, 7), 16) / 255;
-
-        totalChannelError += Math.abs(r - sample.r) + Math.abs(g - sample.g) + Math.abs(b - sample.b);
-      }
-
-      const meanChannelError = totalChannelError / (samples.length * 3);
-      expect(meanChannelError).toBeLessThanOrEqual(15 / 255);
+      // Continuous interpolation measures ~1.2/255 mean and ~8.5/255 max; the old
+      // discrete-hue lookup measured ~5.1/255 mean and ~37.5/255 max.
+      expect(totalChannelError / (samples.length * 3)).toBeLessThanOrEqual(3 / 255);
+      expect(maxChannelError).toBeLessThanOrEqual(12 / 255);
     });
   });
 
