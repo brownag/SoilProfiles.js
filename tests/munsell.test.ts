@@ -1,3 +1,5 @@
+import { readFileSync } from 'fs';
+import path from 'path';
 import { munsellToHex, isMunsellValid } from '../src/core/munsell';
 
 /**
@@ -43,21 +45,28 @@ describe('Munsell Color Conversion', () => {
       expect(munsellToHex('invalid', 5, 6)).toBeNull();
       expect(munsellToHex('R5', 5, 6)).toBeNull();
       expect(munsellToHex('', 5, 6)).toBeNull();
+      expect(munsellToHex('5XX', 5, 6)).toBeNull();
+      expect(munsellToHex('0YR', 5, 6)).toBeNull();
+      expect(munsellToHex('12YR', 5, 6)).toBeNull();
     });
 
     it('should return null for undefined parameters', () => {
       expect(munsellToHex(undefined, 5, 6)).toBeNull();
       expect(munsellToHex('5R', undefined, 6)).toBeNull();
       expect(munsellToHex('5R', 5, undefined)).toBeNull();
+      expect(munsellToHex('N', undefined, 0)).toBeNull();
     });
 
     it('should return null for invalid value range', () => {
       expect(munsellToHex('5R', -1, 6)).toBeNull();
       expect(munsellToHex('5R', 11, 6)).toBeNull();
+      expect(munsellToHex('N', -1, 0)).toBeNull();
+      expect(munsellToHex('N', 11, 0)).toBeNull();
     });
 
     it('should return null for negative chroma', () => {
       expect(munsellToHex('5R', 5, -1)).toBeNull();
+      expect(munsellToHex('N', 4, -1)).toBeNull();
     });
 
     it('should handle common soil hues', () => {
@@ -107,6 +116,87 @@ describe('Munsell Color Conversion', () => {
       // "N 2/-" (dash chroma)
       const res4 = munsellToHex('n', 2, '-'); // also test case insensitivity
       expect(res4).toBe(res1);
+
+      // "N 4/0"
+      const resN4 = munsellToHex('N', 4, 0);
+      expect(resN4).toMatch(/^#[0-9a-f]{6}$/i);
+      expect(resN4!.slice(1, 3)).toBe(resN4!.slice(3, 5));
+      expect(resN4!.slice(3, 5)).toBe(resN4!.slice(5, 7));
+      expect(resN4).not.toBe(res1);
+    });
+
+    it('should return distinct hex colors for 10YR 4/2 and 5YR 4/2', () => {
+      const yr10 = munsellToHex('10YR', 4, 2);
+      const yr5 = munsellToHex('5YR', 4, 2);
+      expect(yr10).toMatch(/^#[0-9a-f]{6}$/i);
+      expect(yr5).toMatch(/^#[0-9a-f]{6}$/i);
+      expect(yr10).not.toBe(yr5);
+    });
+
+    it('should produce distinct valid hex colors across common soil hues at identical value/chroma', () => {
+      const soilHues = ['2.5YR', '5YR', '7.5YR', '10YR', '2.5Y', '5Y'];
+
+      for (const [value, chroma] of [
+        [4, 2],
+        [5, 6],
+      ]) {
+        const results = soilHues.map((hue) => munsellToHex(hue, value, chroma));
+        for (const hex of results) {
+          expect(hex).toMatch(/^#[0-9a-f]{6}$/i);
+        }
+        expect(new Set(results).size).toBe(soilHues.length);
+      }
+    });
+
+    it('should closely approximate reference sRGB values across common soil hues', () => {
+      const dataPath = path.join(__dirname, '..', 'soilprofiles-munsell', 'munsell-data.json');
+      const raw = readFileSync(dataPath, 'utf8');
+      const soilHues = new Set(['2.5YR', '5YR', '7.5YR', '10YR', '2.5Y', '5Y']);
+      const entryRegex =
+        /\{\s*hue:\s*'([^']+)',\s*value:\s*([\d.]+),\s*chroma:\s*([\d.]+),\s*r:\s*([\d.]+),\s*g:\s*([\d.]+),\s*b:\s*([\d.]+)\s*\}/g;
+
+      interface RefEntry {
+        hue: string;
+        value: number;
+        chroma: number;
+        r: number;
+        g: number;
+        b: number;
+      }
+
+      const samples: RefEntry[] = [];
+      let match: RegExpExecArray | null;
+      while ((match = entryRegex.exec(raw)) !== null) {
+        const hue = match[1];
+        const value = Number(match[2]);
+        const chroma = Number(match[3]);
+        if (soilHues.has(hue) && value >= 2 && value <= 8 && chroma >= 1 && chroma <= 8) {
+          samples.push({
+            hue,
+            value,
+            chroma,
+            r: Number(match[4]),
+            g: Number(match[5]),
+            b: Number(match[6]),
+          });
+        }
+      }
+
+      expect(samples.length).toBeGreaterThan(0);
+
+      let totalChannelError = 0;
+      for (const sample of samples) {
+        const hex = munsellToHex(sample.hue, sample.value, sample.chroma);
+        expect(hex).toMatch(/^#[0-9a-f]{6}$/i);
+        const r = parseInt(hex!.slice(1, 3), 16) / 255;
+        const g = parseInt(hex!.slice(3, 5), 16) / 255;
+        const b = parseInt(hex!.slice(5, 7), 16) / 255;
+
+        totalChannelError += Math.abs(r - sample.r) + Math.abs(g - sample.g) + Math.abs(b - sample.b);
+      }
+
+      const meanChannelError = totalChannelError / (samples.length * 3);
+      expect(meanChannelError).toBeLessThanOrEqual(15 / 255);
     });
   });
 
