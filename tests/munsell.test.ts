@@ -174,6 +174,31 @@ describe('Munsell Color Conversion', () => {
       expect(totalChannelError / (samples.length * 3)).toBeLessThanOrEqual(3 / 255);
       expect(maxChannelError).toBeLessThanOrEqual(12 / 255);
     });
+
+    it('should place neutral grays on the same value scale as chromatic colors', () => {
+      // N v/0 should match the lightness of near-neutral (chroma 1) renotation chips at the
+      // same value. aqp's measured neutral chips (e.g. N 5/ at L* 35) are deliberately not
+      // used: they sit ~1 value step darker than the renotation scale for N 2-8.
+      const samples: [string, number, number, number, number, number][] = JSON.parse(
+        readFileSync(path.join(__dirname, 'fixtures', 'munsell-reference-soil.json'), 'utf8')
+      );
+
+      let previous = -1;
+      for (const value of [2, 2.5, 3, 4, 5, 6, 7, 8]) {
+        const chroma1 = samples.filter(([, v, c]) => v === value && c === 1);
+        expect(chroma1.length).toBeGreaterThan(0);
+        const expected =
+          chroma1.reduce((sum, [, , , r, g, b]) => sum + (r + g + b) / 3, 0) / chroma1.length;
+
+        const hex = munsellToHex('N', value, 0)!;
+        expect(hex).toMatch(/^#([0-9a-f]{2})\1\1$/i);
+        const gray = parseInt(hex.slice(1, 3), 16) / 255;
+
+        expect(Math.abs(gray - expected)).toBeLessThanOrEqual(5 / 255);
+        expect(gray).toBeGreaterThan(previous);
+        previous = gray;
+      }
+    });
   });
 
   describe('isMunsellValid function', () => {
