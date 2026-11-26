@@ -137,5 +137,5 @@ Replace the 6-hue collapse in `munsellToRgbApprox` (`src/utils/munsell-approx.ts
 - **Targeted Test Command**: `npm run build && npm test -- tests/package.test.ts`
 - **Acceptance Criteria**:
   - `npm run build && npm test -- tests/package.test.ts` exits 0.
-  - `node -e "import('./dist/index.esm.js').then(m => { const a = m.munsellToHex('10YR', 4, 2); const b = m.munsellToHex('5YR', 4, 2); console.log({a, b}); if (!a || !b || a === b) process.exit(1); })"` exits 0.
+  - `node -e "const b64 = require('fs').readFileSync('dist/index.esm.js').toString('base64'); import('data:text/javascript;base64,' + b64).then(m => { const a = m.munsellToHex('10YR', 4, 2); const b = m.munsellToHex('5YR', 4, 2); console.log({a, b}); if (!a || !b || a === b) process.exit(1); })"` exits 0 (note: `package.json` sets `"type": "commonjs"`, so Node cannot directly `import('./dist/index.esm.js')` by `.js` extension; loading the self-contained ESM bundle via `data:text/javascript;base64,` tests the exact ESM bundle in Node's native ESM loader without changing `package.json`/`esbuild.config.js`).
   - `node -e "const sz = require('fs').statSync('dist/core.esm.js').size; console.log({coreEsmBytes: sz}); if (sz >= 51200) process.exit(1);"` exits 0.
