@@ -1,26 +1,14 @@
 /**
  * This file provides an approximate conversion from Munsell to sRGB.
- * It is based on a simplified model and is not a substitute for a full
- * color management system.
+ * It is a fitted model, not a substitute for a full color management system.
  *
  * The conversion is done in the following steps:
- * 1. Munsell Value to CIEXYZ Y (using a standard polynomial)
- * 2. Munsell Hue and Chroma to CIELAB a* and b* (using a calibrated 20-hue anchor grid and circular interpolation)
- * 3. CIELAB to CIEXYZ
+ * 1. Munsell Value to CIEXYZ Y (Newhall, Nickerson & Judd 1943 polynomial, MgO-relative)
+ * 2. Munsell Hue and Chroma to CIELAB a* and b* (M4e polynomial in Value and Chroma,
+ *    with coefficients blended linearly between the two bracketing 5-unit hue anchors)
+ * 3. CIELAB to CIEXYZ (cube root of Y for fy; linear branch below 6/29 for x, y, z)
  * 4. CIEXYZ to sRGB
  */
-
-interface LabColor {
-  L: number;
-  a: number;
-  b: number;
-}
-
-interface ChromaPoint {
-  chroma: number;
-  a: number;
-  b: number;
-}
 
 const HUE_FAMILIES = ['R', 'YR', 'Y', 'GY', 'G', 'BG', 'B', 'PB', 'P', 'RP'] as const;
 const HUE_ANCHOR_STEP = 5;
@@ -29,195 +17,53 @@ const HUE_ANCHOR_ORDER = [
   '10G', '5BG', '10BG', '5B', '10B', '5PB', '10PB', '5P', '10P', '5RP',
 ] as const;
 
-// Calibrated 20-hue anchor grid covering all 10 Munsell hue families at 5-unit spacing.
-// Each anchor stores representative (chroma, a*, b*) points in sRGB gamut.
-export const hueData: Record<string, ChromaPoint[]> = {
-  '10RP': [
-    { chroma: 1, a: 4.24, b: 0.89 },
-    { chroma: 2, a: 8.88, b: 1.71 },
-    { chroma: 4, a: 17.99, b: 3.41 },
-    { chroma: 6, a: 27.11, b: 5.03 },
-    { chroma: 8, a: 36.07, b: 6.48 },
-    { chroma: 10, a: 44.76, b: 7.73 },
-    { chroma: 12, a: 53.46, b: 9.26 },
-    { chroma: 18, a: 79.26, b: 12.27 },
-  ],
-  '5R': [
-    { chroma: 1, a: 3.97, b: 1.86 },
-    { chroma: 2, a: 8.79, b: 4.00 },
-    { chroma: 4, a: 17.84, b: 8.42 },
-    { chroma: 6, a: 26.42, b: 12.74 },
-    { chroma: 8, a: 35.11, b: 17.04 },
-    { chroma: 10, a: 44.33, b: 21.23 },
-    { chroma: 12, a: 51.87, b: 25.84 },
-    { chroma: 18, a: 77.50, b: 38.94 },
-  ],
-  '10R': [
-    { chroma: 1, a: 3.78, b: 3.12 },
-    { chroma: 2, a: 8.23, b: 6.69 },
-    { chroma: 4, a: 16.35, b: 14.04 },
-    { chroma: 6, a: 23.96, b: 21.37 },
-    { chroma: 8, a: 31.67, b: 29.17 },
-    { chroma: 9, a: 35.39, b: 33.17 },
-    { chroma: 12, a: 45.66, b: 47.13 },
-    { chroma: 16, a: 57.28, b: 66.64 },
-  ],
-  '5YR': [
-    { chroma: 1, a: 3.16, b: 5.28 },
-    { chroma: 2, a: 6.37, b: 10.03 },
-    { chroma: 4, a: 12.19, b: 19.98 },
-    { chroma: 6, a: 17.78, b: 30.52 },
-    { chroma: 7, a: 20.38, b: 35.85 },
-    { chroma: 8, a: 22.62, b: 41.26 },
-    { chroma: 12, a: 31.13, b: 64.00 },
-  ],
-  '10YR': [
-    { chroma: 1, a: 1.38, b: 6.84 },
-    { chroma: 2, a: 3.17, b: 12.83 },
-    { chroma: 4, a: 6.36, b: 25.20 },
-    { chroma: 6, a: 9.42, b: 37.85 },
-    { chroma: 8, a: 11.60, b: 50.93 },
-    { chroma: 11, a: 14.49, b: 69.85 },
-  ],
-  '5Y': [
-    { chroma: 1, a: -0.86, b: 7.53 },
-    { chroma: 2, a: -0.98, b: 14.40 },
-    { chroma: 4, a: -1.04, b: 28.44 },
-    { chroma: 6, a: -0.92, b: 43.16 },
-    { chroma: 7, a: -1.12, b: 50.45 },
-    { chroma: 8, a: -0.84, b: 57.17 },
-    { chroma: 12, a: -3.66, b: 86.19 },
-  ],
-  '10Y': [
-    { chroma: 1, a: -2.22, b: 6.96 },
-    { chroma: 2, a: -4.09, b: 14.12 },
-    { chroma: 4, a: -7.14, b: 28.49 },
-    { chroma: 6, a: -9.74, b: 43.51 },
-    { chroma: 7, a: -11.03, b: 51.08 },
-    { chroma: 8, a: -12.27, b: 58.52 },
-    { chroma: 12, a: -17.40, b: 88.55 },
-  ],
-  '5GY': [
-    { chroma: 1, a: -3.27, b: 5.76 },
-    { chroma: 2, a: -7.03, b: 12.01 },
-    { chroma: 4, a: -13.48, b: 24.20 },
-    { chroma: 6, a: -19.24, b: 36.56 },
-    { chroma: 7, a: -22.18, b: 43.73 },
-    { chroma: 8, a: -24.95, b: 50.75 },
-    { chroma: 12, a: -35.01, b: 81.09 },
-  ],
-  '10GY': [
-    { chroma: 1, a: -4.64, b: 3.69 },
-    { chroma: 2, a: -9.81, b: 7.71 },
-    { chroma: 4, a: -19.28, b: 15.46 },
-    { chroma: 6, a: -28.54, b: 23.32 },
-    { chroma: 8, a: -38.24, b: 32.24 },
-    { chroma: 9, a: -42.86, b: 36.31 },
-    { chroma: 12, a: -56.40, b: 49.39 },
-    { chroma: 17, a: -80.46, b: 73.35 },
-  ],
-  '5G': [
-    { chroma: 1, a: -5.07, b: 1.94 },
-    { chroma: 2, a: -10.80, b: 3.84 },
-    { chroma: 4, a: -21.71, b: 7.37 },
-    { chroma: 6, a: -32.53, b: 10.79 },
-    { chroma: 8, a: -43.05, b: 14.26 },
-    { chroma: 11, a: -61.51, b: 20.29 },
-  ],
-  '10G': [
-    { chroma: 1, a: -5.05, b: 0.76 },
-    { chroma: 2, a: -10.74, b: 1.40 },
-    { chroma: 4, a: -21.77, b: 2.54 },
-    { chroma: 6, a: -32.20, b: 3.96 },
-    { chroma: 8, a: -42.89, b: 5.22 },
-    { chroma: 10, a: -55.24, b: 7.39 },
-  ],
-  '5BG': [
-    { chroma: 1, a: -5.10, b: -0.51 },
-    { chroma: 2, a: -10.17, b: -1.42 },
-    { chroma: 4, a: -20.38, b: -3.15 },
-    { chroma: 5, a: -25.41, b: -3.63 },
-    { chroma: 6, a: -30.21, b: -3.97 },
-    { chroma: 8, a: -40.73, b: -4.42 },
-    { chroma: 9, a: -48.08, b: -3.87 },
-  ],
-  '10BG': [
-    { chroma: 1, a: -4.66, b: -1.80 },
-    { chroma: 2, a: -8.77, b: -4.12 },
-    { chroma: 4, a: -17.39, b: -8.67 },
-    { chroma: 5, a: -21.80, b: -10.44 },
-    { chroma: 6, a: -26.14, b: -12.10 },
-    { chroma: 8, a: -35.33, b: -15.08 },
-    { chroma: 9, a: -44.26, b: -15.94 },
-  ],
-  '5B': [
-    { chroma: 1, a: -3.49, b: -2.72 },
-    { chroma: 2, a: -6.42, b: -6.10 },
-    { chroma: 4, a: -12.66, b: -12.87 },
-    { chroma: 5, a: -15.78, b: -15.72 },
-    { chroma: 6, a: -18.98, b: -18.71 },
-    { chroma: 8, a: -25.42, b: -24.43 },
-  ],
-  '10B': [
-    { chroma: 1, a: -1.86, b: -3.52 },
-    { chroma: 2, a: -3.32, b: -7.39 },
-    { chroma: 4, a: -6.43, b: -15.22 },
-    { chroma: 6, a: -9.48, b: -22.42 },
-    { chroma: 8, a: -12.56, b: -29.97 },
-    { chroma: 10, a: -15.72, b: -37.83 },
-  ],
-  '5PB': [
-    { chroma: 1, a: 0.15, b: -4.05 },
-    { chroma: 2, a: 0.27, b: -7.97 },
-    { chroma: 4, a: 0.56, b: -16.10 },
-    { chroma: 6, a: 1.06, b: -24.52 },
-    { chroma: 8, a: 1.80, b: -32.70 },
-    { chroma: 12, a: 2.62, b: -48.45 },
-    { chroma: 14, a: 3.17, b: -57.73 },
-  ],
-  '10PB': [
-    { chroma: 1, a: 2.09, b: -4.09 },
-    { chroma: 2, a: 3.89, b: -7.78 },
-    { chroma: 4, a: 7.94, b: -15.44 },
-    { chroma: 6, a: 12.49, b: -23.15 },
-    { chroma: 8, a: 17.20, b: -30.44 },
-    { chroma: 12, a: 28.68, b: -44.75 },
-    { chroma: 14, a: 34.72, b: -51.82 },
-    { chroma: 18, a: 48.95, b: -64.02 },
-    { chroma: 27, a: 79.81, b: -90.05 },
-  ],
-  '5P': [
-    { chroma: 1, a: 3.35, b: -3.52 },
-    { chroma: 2, a: 6.26, b: -6.55 },
-    { chroma: 4, a: 12.50, b: -12.77 },
-    { chroma: 6, a: 18.84, b: -18.82 },
-    { chroma: 8, a: 25.33, b: -24.67 },
-    { chroma: 12, a: 39.07, b: -36.24 },
-    { chroma: 14, a: 46.04, b: -41.76 },
-    { chroma: 18, a: 59.37, b: -52.11 },
-    { chroma: 26, a: 88.32, b: -72.68 },
-  ],
-  '10P': [
-    { chroma: 1, a: 4.13, b: -2.05 },
-    { chroma: 2, a: 7.88, b: -3.96 },
-    { chroma: 4, a: 15.76, b: -7.96 },
-    { chroma: 6, a: 23.80, b: -12.02 },
-    { chroma: 8, a: 31.77, b: -16.11 },
-    { chroma: 12, a: 47.33, b: -24.08 },
-    { chroma: 18, a: 69.27, b: -34.49 },
-    { chroma: 22, a: 85.81, b: -42.52 },
-  ],
-  '5RP': [
-    { chroma: 1, a: 4.34, b: -0.36 },
-    { chroma: 2, a: 8.67, b: -0.83 },
-    { chroma: 4, a: 17.50, b: -1.82 },
-    { chroma: 6, a: 26.63, b: -2.96 },
-    { chroma: 8, a: 35.50, b: -4.19 },
-    { chroma: 10, a: 43.49, b: -5.46 },
-    { chroma: 12, a: 52.83, b: -7.72 },
-    { chroma: 18, a: 77.09, b: -10.24 },
-  ],
-};
+// M4e polynomial coefficients, generated from scripts/candidate_M4e.json (anchor order HUE_ANCHOR_ORDER).
+// Basis: [C, C*V, C*V^2, C*V^3, C^2, C^2*V, C^2*V^2, C^3].
+export const COEF_A: readonly number[][] = [
+  [5.196844, 0.406557, -0.162569, 0.010938, -0.103115, 0.014287, 0.000745, 0.000984],
+  [5.524829, 0.146316, -0.106951, 0.007663, -0.106511, 0.008977, 0.001028, 0.002073],
+  [5.032638, -0.032925, -0.042646, 0.003071, -0.00733, -0.019232, 0.002751, 0.000459],
+  [4.613493, -0.502788, 0.069544, -0.00433, -0.032816, -0.0138, 0.002218, -0.00126],
+  [2.72618, -0.251772, 0.004896, -0.000188, -0.09107, 0.030701, -0.001109, -0.004642],
+  [0.480188, -0.339347, 0.024668, -0.001412, 0.115557, 0.007776, 1.1e-05, -0.006891],
+  [-1.674294, -0.124528, -0.003764, 0.000573, 0.115272, 0.007958, -0.000641, -0.002706],
+  [-3.744349, 0.258257, -0.072141, 0.004298, -0.022799, 0.03126, -0.001999, 2.4e-05],
+  [-4.373451, -0.144677, 0.029871, -0.004023, -0.027923, -0.000695, 0.001766, -0.001117],
+  [-4.643072, -0.327214, 0.065113, -0.006316, 0.037033, -0.015139, 0.002901, -0.0034],
+  [-4.766313, -0.300107, 0.061051, -0.005976, 0.063517, -0.01395, 0.002603, -0.004459],
+  [-4.226481, -0.207814, 0.030208, -0.003569, -0.040512, 0.003115, 0.001012, -0.001001],
+  [-3.067494, -0.406543, 0.046385, -0.003141, -0.071134, 0.024107, -0.001331, -0.002086],
+  [-1.958724, -0.630798, 0.102006, -0.006357, 0.013815, 0.020208, -0.002001, -0.00237],
+  [-0.711304, -0.542056, 0.097368, -0.006088, 0.057057, 0.001879, -0.001064, -0.000181],
+  [0.69964, -0.23111, 0.034789, -0.002283, 0.133814, -0.046184, 0.003633, 0.001959],
+  [2.964675, 0.020381, -0.075025, 0.005005, 0.078233, -0.02411, 0.003829, -0.000949],
+  [3.919279, 0.310197, -0.134782, 0.008348, -0.015984, -0.014162, 0.003572, 0.000293],
+  [4.523831, 0.293028, -0.121786, 0.007859, -0.045898, 0.004165, 0.001667, -0.001214],
+  [5.077056, 0.299216, -0.132401, 0.008843, -0.089199, 0.018033, 0.000424, -0.000739],
+];
+
+export const COEF_B: readonly number[][] = [
+  [-2.198822, 1.484872, -0.224612, 0.010878, -0.007496, -0.00228, 0.000767, -0.001041],
+  [-0.902165, 1.689568, -0.29493, 0.015565, -0.038328, 0.013703, -0.000134, -0.001589],
+  [0.83345, 1.57507, -0.31753, 0.019569, -0.116643, 0.069489, -0.005461, -0.002138],
+  [3.248946, 1.201408, -0.276427, 0.018856, -0.143099, 0.086295, -0.0076, -0.002123],
+  [5.036106, 0.879544, -0.174611, 0.011413, -0.158798, 0.050029, -0.004652, 0.001874],
+  [5.294331, 1.039006, -0.170965, 0.009712, -0.092064, 0.024451, -0.002358, -0.000273],
+  [4.54739, 1.184625, -0.166439, 0.008428, 0.022851, 0.004354, -0.000934, -0.00285],
+  [2.817546, 1.782219, -0.329874, 0.020832, -0.163739, 0.078092, -0.007344, 0.000726],
+  [1.891388, 0.893918, -0.161719, 0.011151, -0.106566, 0.053133, -0.005119, -0.000468],
+  [1.445612, 0.126728, -0.005477, 0.000811, -0.096911, 0.008894, -0.000877, 0.001258],
+  [0.18024, 0.218547, -0.021737, 0.001278, -0.073051, 0.006569, -0.000654, 0.001719],
+  [-1.750589, 0.365416, -0.027576, 0.000966, -0.033197, -0.006986, 0.00032, 0.002771],
+  [-3.294964, 0.247702, 0.022206, -0.003303, 0.04369, -0.033269, 0.002612, 0.003009],
+  [-4.12633, 0.38974, -0.027197, 0.000359, -0.051618, -0.015094, 0.000977, 0.004287],
+  [-4.513625, 0.000491, 0.053892, -0.004044, -0.006998, 0.003442, -0.001801, 0.001016],
+  [-4.592672, -0.250052, 0.11338, -0.007437, -0.006051, 0.009678, -0.003266, 0.002184],
+  [-4.110018, -0.616307, 0.19033, -0.011662, 0.066554, 0.002057, -0.003679, 0.002446],
+  [-3.375922, -0.487803, 0.136359, -0.007815, 0.073493, 0.009607, -0.003211, -0.00058],
+  [-3.29188, 0.166148, 0.03891, -0.003568, 0.060614, -0.014557, 4.3e-05, 0.000423],
+  [-2.93734, 0.971299, -0.110881, 0.004241, 0.030929, -0.014353, 0.00104, -0.000294],
+];
 
 /**
  * Parses a chromatic Munsell hue string (e.g., "2.5YR", "10YR", "7.5BG")
@@ -250,43 +96,9 @@ export function parseMunsellHueAngle(hue: string): number | null {
 }
 
 /**
- * Piecewise-linearly interpolates CIELAB a* and b* across chroma for a single hue anchor.
- */
-function interpolateChromaLab(points: ChromaPoint[], chroma: number): { a: number; b: number } {
-  if (chroma === 0) {
-    return { a: 0, b: 0 };
-  }
-
-  const first = points[0];
-  if (chroma <= first.chroma) {
-    const t = chroma / first.chroma;
-    return { a: first.a * t, b: first.b * t };
-  }
-
-  for (let i = 0; i < points.length - 1; i++) {
-    const p0 = points[i];
-    const p1 = points[i + 1];
-    if (chroma <= p1.chroma) {
-      const t = (chroma - p0.chroma) / (p1.chroma - p0.chroma);
-      return {
-        a: p0.a + t * (p1.a - p0.a),
-        b: p0.b + t * (p1.b - p0.b),
-      };
-    }
-  }
-
-  const p0 = points[points.length - 2];
-  const p1 = points[points.length - 1];
-  const t = (chroma - p0.chroma) / (p1.chroma - p0.chroma);
-  return {
-    a: p0.a + t * (p1.a - p0.a),
-    b: p0.b + t * (p1.b - p0.b),
-  };
-}
-
-/**
  * Converts a Munsell Value to CIEXYZ Y coordinate.
- * Uses the ASTM D1535 formula.
+ * Newhall, Nickerson & Judd (1943) MgO-relative polynomial. This is not the
+ * ASTM D1535-08 formula (which uses 1.1914...).
  * @param V Munsell Value (0-10)
  * @returns Y coordinate (0-1)
  */
@@ -301,50 +113,12 @@ function munsellValueToY(V: number): number {
 }
 
 /**
- * Interpolates CIELAB a* and b* values for any valid chromatic Munsell hue and chroma
- * using circular hue-angle interpolation between the two bracketing hue anchors.
- * @param hue Munsell Hue (e.g., '5R', '10YR', '2.5Y', '7.5BG')
- * @param chroma Munsell Chroma (>= 0)
- * @returns an object with a and b properties, or null if hue or chroma is invalid.
- */
-export function interpolateLab(hue: string, chroma: number): { a: number; b: number } | null {
-  const angle = parseMunsellHueAngle(hue);
-  if (angle === null || !Number.isFinite(chroma) || chroma < 0) {
-    return null;
-  }
-
-  if (chroma === 0) {
-    return { a: 0, b: 0 };
-  }
-
-  const scaled = angle / HUE_ANCHOR_STEP;
-  const baseIdx = Math.floor(scaled);
-  const idx0 = baseIdx % HUE_ANCHOR_ORDER.length;
-  const idx1 = (idx0 + 1) % HUE_ANCHOR_ORDER.length;
-  const t = scaled - baseIdx;
-
-  const ab0 = interpolateChromaLab(hueData[HUE_ANCHOR_ORDER[idx0]], chroma);
-  if (t === 0) {
-    return ab0;
-  }
-
-  const ab1 = interpolateChromaLab(hueData[HUE_ANCHOR_ORDER[idx1]], chroma);
-  return {
-    a: ab0.a + t * (ab1.a - ab0.a),
-    b: ab0.b + t * (ab1.b - ab0.b),
-  };
-}
-
-/**
- * Converts CIELAB color to CIEXYZ.
+ * Converts CIELAB color to CIEXYZ, given fy = (L+16)/116 (computed as cbrt(Y)).
  * Assumes D65 reference white.
  */
-function labToXyz(lab: LabColor): { x: number; y: number; z: number } {
-  const { L, a, b } = lab;
-
+function labToXyz(fy: number, a: number, b: number): { x: number; y: number; z: number } {
   const delta = 6 / 29;
 
-  const fy = (L + 16) / 116;
   const fx = a / 500 + fy;
   const fz = fy - b / 200;
 
@@ -398,7 +172,64 @@ function xyzToRgb(xyz: { x: number; y: number; z: number }): { r: number; g: num
 }
 
 /**
- * Main function to convert Munsell to sRGB hex string.
+ * Converts a normalized Munsell hue, value and chroma to an sRGB hex string.
+ * @param hue Uppercase Munsell hue (e.g., '5R', '10YR', '2.5Y'), or 'N' for neutral
+ * @param value Munsell Value (0-10)
+ * @param chroma Munsell Chroma (>= 0)
+ * @returns sRGB hex string (e.g., '#8b6f47') or null if the input is invalid.
+ */
+export function munsellToHexApprox(hue: string, value: number, chroma: number): string | null {
+  if (!Number.isFinite(value) || !Number.isFinite(chroma) || value < 0 || value > 10 || chroma < 0) {
+    return null;
+  }
+
+  // 2. Hue and chroma to a* and b*
+  let a = 0;
+  let b = 0;
+  if (hue !== 'N') {
+    const angle = parseMunsellHueAngle(hue);
+    if (angle === null) {
+      return null;
+    }
+
+    if (chroma > 0) {
+      const scaled = angle / HUE_ANCHOR_STEP;
+      const i0 = Math.floor(scaled) % HUE_ANCHOR_ORDER.length;
+      const i1 = (i0 + 1) % HUE_ANCHOR_ORDER.length;
+      const t = (angle - HUE_ANCHOR_STEP * i0) / HUE_ANCHOR_STEP;
+
+      const Cc = Math.min(chroma, 12);
+      const V = value;
+      const basis = [Cc, Cc * V, Cc * V * V, Cc * V * V * V, Cc * Cc, Cc * Cc * V, Cc * Cc * V * V, Cc * Cc * Cc];
+      const dot = (row: readonly number[]) => row.reduce((s, c, k) => s + c * basis[k], 0);
+
+      a = (1 - t) * dot(COEF_A[i0]) + t * dot(COEF_A[i1]);
+      b = (1 - t) * dot(COEF_B[i0]) + t * dot(COEF_B[i1]);
+      if (chroma > 12) {
+        a *= chroma / 12;
+        b *= chroma / 12;
+      }
+    }
+  }
+
+  // 1. Munsell Value to Y, then cube root for fy
+  const Y = Math.max(0, munsellValueToY(value));
+  const fy = Math.cbrt(Y);
+
+  // 3. CIELAB to CIEXYZ
+  const xyz = labToXyz(fy, a, b);
+
+  // 4. CIEXYZ to sRGB
+  const rgb = xyzToRgb(xyz);
+
+  const r = Math.round(rgb.r * 255);
+  const g = Math.round(rgb.g * 255);
+  const bl = Math.round(rgb.b * 255);
+  return '#' + ((1 << 24) | (r << 16) | (g << 8) | bl).toString(16).slice(1);
+}
+
+/**
+ * Parses a Munsell string in "H V/C" format and converts it to sRGB hex.
  * @param munsellString Munsell string in "H V/C" format.
  * @returns sRGB hex string or null.
  */
@@ -421,8 +252,7 @@ export function munsellToRgbApprox(munsellString: string): string | null {
   const valueStr = vc[0].trim();
   let chromaStr = vc[1].trim();
 
-  const isNeutral = hue === 'N';
-  if (isNeutral && (chromaStr === '' || chromaStr === '-')) {
+  if (hue === 'N' && (chromaStr === '' || chromaStr === '-')) {
     chromaStr = '0';
   }
 
@@ -430,35 +260,5 @@ export function munsellToRgbApprox(munsellString: string): string | null {
     return null;
   }
 
-  const value = Number(valueStr);
-  const chroma = Number(chromaStr);
-
-  if (!Number.isFinite(value) || !Number.isFinite(chroma) || value < 0 || value > 10 || chroma < 0) {
-    return null;
-  }
-
-  // 1. Munsell Value to Y
-  const Y = Math.max(0, munsellValueToY(value));
-
-  // 2. Interpolate a* and b*
-  const lab_ab = isNeutral ? { a: 0, b: 0 } : interpolateLab(hue, chroma);
-  if (!lab_ab) {
-    return null;
-  }
-
-  // L* is related to Y
-  const L = 116 * Math.pow(Y, 1 / 3) - 16;
-
-  // 3. CIELAB to CIEXYZ
-  const xyz = labToXyz({ L, a: lab_ab.a, b: lab_ab.b });
-
-  // 4. CIEXYZ to sRGB
-  const rgb = xyzToRgb(xyz);
-
-  const toHex = (c: number) => {
-    const hex = Math.round(c * 255).toString(16);
-    return hex.length === 1 ? '0' + hex : hex;
-  };
-
-  return `#${toHex(rgb.r)}${toHex(rgb.g)}${toHex(rgb.b)}`;
+  return munsellToHexApprox(hue, Number(valueStr), Number(chromaStr));
 }
