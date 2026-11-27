@@ -1,6 +1,6 @@
 # Munsell to sRGB approximation: accuracy, size and speed options
 
-Research note, 2026-11-26. Branch `fix/munsell-hue-approx`. Scope: `src/utils/munsell-approx.ts` and `src/core/munsell.ts`. No source or test changes were made.
+Research note, 2026-11-26. Branch `fix/munsell-hue-approx`. Scope: `src/utils/munsell-approx.ts` and `src/core/munsell.ts`. No source or test changes were made. Source line references (`file.ts:NNN`) point to commit `4ded6e9`, before the library adopted model M4e. Recommendations 1, 3 and 4 have since been implemented (4 by fixing the label and keeping the Newhall scale).
 
 All colour differences are **CIEDE2000 (ΔE00)** unless marked CIE76. The ΔE00 code follows Sharma, Wu & Dalal (2005). It matches 33 of the 34 published test pairs to within 1e-4. The remaining pair is pair 14, the exact-180° hue-mean discontinuity case, where it is off by 0.058. Each model's Lab output goes through the library's own clip-and-round pipeline to an 8-bit sRGB hex value before it is compared, so every number below is the error a user would actually see.
 
@@ -171,6 +171,14 @@ That is at most about 0.8 ΔE00 (1.5 at 10YR 9.5/2-like colours), or 1–2 hex s
 
 Every model shares the library's L\* (Newhall scale) and clip/round pipeline; only the a\*b\* model changes. Training data is the renotation `all.dat` at V 1–10, C ≤ 16, all 40 hues. Typical-domain chips get 3 times the weight. Bytes are the node or coefficient numbers written as a JS literal (raw / gzip −9), not counting code.
 
+Model labels are run IDs from `scripts/exp1.py`, grouped by family:
+- **M0**: the value-independent anchor grid the library used before this study.
+- **M1, M2**: value × chroma node grids.
+- **M4**: per-anchor polynomials in value and chroma.
+- **M6**: a lookup table of soil-book chips.
+
+The letter is the variant. The library now uses **M4e**, the 8-term polynomial over 20 hue anchors.
+
 ΔE00 against **munsellinterpol** (mean / p95 / max; OSD-weighted as mean / p95):
 
 | Model | Bytes raw / gz | Typical | Gley | Red 5R/7.5R | High C 8–14 | Dark V1–2.5 | Light V8.5–9.5 | Redox | All chromatic | OSD-weighted |
@@ -205,7 +213,7 @@ Every model shares the library's L\* (Newhall scale) and clip/round pipeline; on
 
 The scripts are in `scripts/`. The large reference exports (`aqp_munsell.csv`, `mi_xyY.csv`) and the munsell.js bundle are git-ignored; steps 1–2 regenerate them.
 
-Steps 5–6 measure the pre-M4e anchor grid, which has since been replaced. Run them from a checkout of commit `4ded6e9` (`git worktree add ../munsell-study 4ded6e9`). There, `exp1.py` parses `hueData` from the TS source, and the benchmark scripts are present. The M4e fixture used by the tests is built by `scripts/make_munsellinterpol_fixture.py` from `mi_xyY.csv`.
+Steps 5–6 measure the original value-independent anchor grid, which the library no longer uses. Run them from a checkout of commit `4ded6e9` (`git worktree add ../munsell-study 4ded6e9`). There, `exp1.py` parses `hueData` from the TS source, and the benchmark scripts are present. The munsellinterpol reference fixture used by the tests is built by `scripts/make_munsellinterpol_fixture.py` from `mi_xyY.csv`.
 
 1. Export the reference data:
    - aqp: `Rscript -e 'library(aqp); data(munsell); write.csv(munsell,"aqp_munsell.csv",row.names=FALSE)'`.
@@ -242,7 +250,7 @@ Accuracy is the typical-domain / OSD-weighted mean ΔE00 against munsellinterpol
 
 ## 8. Recommendations (ranked by accuracy gain per byte and per unit of complexity)
 
-1. **Replace `hueData` with the value-dependent polynomial (M4e)**. It is about the same size or smaller and gives 2.5 times lower typical error and 2 times lower frequency-weighted error. Dark-red worst cases drop from 5–6 ΔE00 to at most 2.5. Code is simpler than today: no chroma-segment search. Keep D1535 L\* and the neutral path unchanged.
+1. **Replace `hueData` with the value-dependent polynomial (M4e)**. It is about the same size or smaller and gives 2.5 times lower typical error and 2 times lower frequency-weighted error. Dark-red worst cases drop from 5–6 ΔE00 to at most 2.5. Code is simpler than today: no chroma-segment search. Keep the Newhall (1943) L\* and the neutral path unchanged.
 2. **If rare-domain worst cases matter more than about 2 KB gzipped, use the M1g grid instead** (0.5 rounding, optional polar blend). It is the only compact option that keeps gley, dark (V≤2.5), light and redox colours at or below 1.5 ΔE00 maximum.
 3. **Recalibrate against the renotation data or munsellinterpol, not aqp.**
    - Commit a small offline fit script, for example under `scripts/`, that reads `all.dat` and writes the coefficient table.

@@ -4,7 +4,7 @@
  *
  * The conversion is done in the following steps:
  * 1. Munsell Value to CIEXYZ Y (Newhall, Nickerson & Judd 1943 polynomial, MgO-relative)
- * 2. Munsell Hue and Chroma to CIELAB a* and b* (M4e polynomial in Value and Chroma,
+ * 2. Munsell Hue and Chroma to CIELAB a* and b* (per-anchor cubic polynomial in Value and Chroma,
  *    with coefficients blended linearly between the two bracketing 5-unit hue anchors)
  * 3. CIELAB to CIEXYZ (cube root of Y for fy; linear branch below 6/29 for x, y, z)
  * 4. CIEXYZ to sRGB
@@ -17,7 +17,8 @@ const HUE_ANCHOR_ORDER = [
   '10G', '5BG', '10BG', '5B', '10B', '5PB', '10PB', '5P', '10P', '5RP',
 ] as const;
 
-// M4e polynomial coefficients, generated from scripts/candidate_M4e.json (anchor order HUE_ANCHOR_ORDER).
+// a* and b* polynomial coefficients for each hue anchor (order: HUE_ANCHOR_ORDER), fitted to the
+// Munsell renotation data. See docs/research/munsell-approximation.md; generated from scripts/candidate_M4e.json.
 // Basis: [C, C*V, C*V^2, C*V^3, C^2, C^2*V, C^2*V^2, C^3].
 const COEF_A: readonly number[][] = [
   [5.196844, 0.406557, -0.162569, 0.010938, -0.103115, 0.014287, 0.000745, 0.000984],
