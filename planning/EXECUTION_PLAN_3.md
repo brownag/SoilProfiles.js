@@ -177,6 +177,7 @@ Files are pairwise disjoint within each wave. Wave 2 tasks run in separate workt
   1. In `munsellToHex`, after the existing validation, call `munsellToHexApprox(normalizedHue, numValue, numChroma)` directly. Delete the `"HUE VALUE/CHROMA"` string build and the try/catch if nothing can throw.
   2. Add a module-level `const cache = new Map<string, string | null>()`, keyed `` `${normalizedHue}|${numValue}|${numChroma}` `` and populated only after validation passes. When `cache.size >= 4096`, call `cache.clear()` before inserting. Cache null results from `munsellToHexApprox` too.
   3. Remove `munsellToRgbApprox` from `src/utils/munsell-approx.ts`. Confirm with grep that there are no other references in `src/`, `tests/` or `examples/` (the `examples/soilknowledgebase-demo.js` list only names built file paths).
+  5. *(Added after Wave 2)* Make `COEF_A` and `COEF_B` in `src/utils/munsell-approx.ts` module-private (drop `export`); 3.2.1 exported them by mistake.
   4. Keep every validation rule in `munsellToHex` unchanged: neutral chroma handling, hue regex, value range and negative chroma.
 - **Anchors**: `src/core/munsell.ts` `munsellToHex` (lines ~12-70, string build ~:59-66); `src/utils/munsell-approx.ts` `munsellToRgbApprox`.
 - **Constraints**: the public exports of `src/core/munsell.ts` (`munsellToHex`, `isMunsellValid`) keep their signatures.

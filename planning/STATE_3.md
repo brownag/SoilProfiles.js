@@ -18,7 +18,7 @@
 | 1 | `3.1.2` | CIEDE2000 test helper | `done` | haiku | `05cafc7` |
 | 2 | `3.2.1` | Port M4e polynomial + numeric entry point | `done` | haiku | `839b8df` |
 | 2 | `3.2.2` | Replace aqp tests with ΔE00 accuracy tests | `done` | haiku | `c3aa65f` |
-| 3 | `3.3.1` | Numeric call path + memo in `munsellToHex`; drop string parser | `pending` | | |
+| 3 | `3.3.1` | Numeric call path + memo in `munsellToHex`; drop string parser | `done` | haiku | `570a037` |
 
 ## Task Reports
 
@@ -60,3 +60,16 @@
 ## Wave 2 close
 - Merged on `feat/munsell-polynomial` @ `c3aa65f`. Worktrees removed. `make check` PASS: 9/9 suites, 193/193 tests (187 − 1 aqp test + 7 new), smoke ok.
 - **Follow-up (user request)**: a dark/gley parity research prompt is in `planning/PROMPT_dark_gley_parity.md` (untracked). The residual is a chroma error at V ≤ 2: greens are over-saturated at V2, reds under-saturated at V1; L* is correct.
+
+## 3.3.1
+- **Status**: done (haiku). Commit `570a037`, made directly on `feat/munsell-polynomial` (no worktree).
+- **Files**: `src/core/munsell.ts` (cache at 3-6, memo block ~60-72); `src/utils/munsell-approx.ts` (`COEF_A`/`COEF_B` made private; `munsellToRgbApprox` deleted).
+- **Tests**: `npx tsc --noEmit` exits 0. `npm run build`, then `npx jest tests/munsell.test.ts tests/package.test.ts`: 2/2 suites, 31/31 tests. The grep for `munsellToRgbApprox` is empty. Neutral baseline identical.
+- **Bench** (10YR 4/3, 1e6 calls, ns/call): old 874 (no memo); new uncached 778 (every call misses, clears at 4096); new cached 99.
+- **Deviations**: none. Spec error: `package.test.ts` does not build dist. It tests whatever `dist/` exists, so run `npm run build` first.
+
+## Orchestration close
+- `make check` PASS @ `570a037`: 9/9 suites, 193/193 tests, smoke ok.
+- **Module size**: 4,430 B minified / **2,325 B gzipped** (baseline 6,453 / 2,529 → −204 B gz).
+- **Rare-domain bound** loosened to 2.6 by user decision (5GY 2/2 at 2.546). The dark/gley follow-up prompt is in `planning/PROMPT_dark_gley_parity.md`.
+- Not done: push or PR (needs explicit user instruction).
