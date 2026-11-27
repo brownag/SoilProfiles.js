@@ -1,4 +1,7 @@
-import { munsellToRgbApprox } from '../utils/munsell-approx';
+import { munsellToHexApprox } from '../utils/munsell-approx';
+
+const cache = new Map<string, string | null>();
+const CACHE_LIMIT = 4096;
 
 /**
  * Converts Munsell color system parameters to a hex color string.
@@ -56,15 +59,18 @@ export function munsellToHex(
     return null;
   }
 
-  // Convert to standard format "HUE VALUE/CHROMA" required by munsellToRgbApprox
-  const munsellString = `${normalizedHue} ${numValue}/${numChroma}`;
-
-  try {
-    const hex = munsellToRgbApprox(munsellString);
-    return hex;
-  } catch {
-    return null;
+  const key = `${normalizedHue}|${numValue}|${numChroma}`;
+  const cached = cache.get(key);
+  if (cached !== undefined) {
+    return cached;
   }
+
+  const hex = munsellToHexApprox(normalizedHue, numValue, numChroma);
+  if (cache.size >= CACHE_LIMIT) {
+    cache.clear();
+  }
+  cache.set(key, hex);
+  return hex;
 }
 
 /**

@@ -1,0 +1,28 @@
+suppressMessages(library(aqp)); data(munsell)
+x <- read.csv(commandArgs(TRUE)[1], colClasses=c("character","numeric","numeric","character","integer"))
+x$fam <- gsub("[0-9.]", "", x$hue); x$num <- as.numeric(sub("[A-Z]+$","",x$hue))
+tot <- sum(x$n); cat("total", tot, " matrix", sum(x$n[x$ctx=="matrix"]), " feature", sum(x$n[x$ctx=="feature"]), "\n")
+pct <- function(l) round(100*sum(x$n[l])/tot, 2)
+cat("hue family %:\n"); print(round(100*sort(tapply(x$n, x$fam, sum),decreasing=TRUE)/tot,2))
+cat("top hues %:\n"); print(head(round(100*sort(tapply(x$n, x$hue, sum),decreasing=TRUE)/tot,2),25))
+cat("value %:\n"); print(round(100*tapply(x$n, x$value, sum)/tot,2))
+cat("chroma %:\n"); print(round(100*tapply(x$n, x$chroma, sum)/tot,2))
+core <- x$hue %in% c("10R","2.5YR","5YR","7.5YR","10YR","2.5Y","5Y") & x$value>=2 & x$value<=8 & x$chroma>=1 & x$chroma<=8
+cat("core 10R-5Y V2-8 C1-8:", pct(core), "\n")
+fix <- x$hue %in% c("2.5YR","5YR","7.5YR","10YR","2.5Y","5Y") & x$value>=2 & x$value<=8 & x$chroma>=1 & x$chroma<=8
+cat("fixture domain:", pct(fix), "\n")
+gley <- x$fam %in% c("GY","G","BG","B","PB") | (x$hue=="10Y")
+cat("gley hues (10Y-5PB):", pct(gley), " N:", pct(x$hue=="N"), "\n")
+cat("chroma>=8:", pct(x$chroma>=8 & x$hue!="N"), " value<=2.5:", pct(x$value<=2.5), " value>=8.5:", pct(x$value>=8.5), "\n")
+cat("R/RP/P/Y>5Y oddities: 5R,7.5R:", pct(x$hue %in% c("5R","7.5R","2.5R")), " P/RP:", pct(x$fam %in% c("P","RP")),"\n")
+# not on standard grid
+std <- paste(munsell$hue, munsell$value, munsell$chroma)
+key <- paste(x$hue, x$value, x$chroma)
+cat("notations in aqp LUT:", pct(key %in% std | x$hue=="N"), "\n")
+cat("non-integer chroma:", pct(x$chroma != round(x$chroma)), " non-standard value:", pct(!x$value %in% c(1,2,2.5,3,4,5,6,7,8,8.5,9,9.5,10)), " hue step not 2.5:", pct(!(x$num %% 2.5 == 0) & x$hue!="N"),"\n")
+o <- aggregate(n ~ hue+value+chroma, x, sum); o <- o[order(-o$n),]
+cs <- cumsum(o$n)/tot; for (k in c(50,100,200,300,500)) cat("top",k,"chips cover",round(100*cs[k],1),"%\n")
+cat("chips for 95/99/99.9%:", which(cs>=.95)[1], which(cs>=.99)[1], which(cs>=.999)[1], " distinct:", nrow(o), "\n")
+f <- x[x$ctx=="feature",]; ft <- sum(f$n)
+cat("feature colors: chroma>=6", round(100*sum(f$n[f$chroma>=6 & f$hue!="N"])/ft,1), "% ; gley", round(100*sum(f$n[f$fam %in% c("GY","G","BG","B","PB")|f$hue=="10Y"])/ft,1), "%\n")
+print(head(aggregate(n~hue+value+chroma,f,sum)[order(-aggregate(n~hue+value+chroma,f,sum)$n),],12))

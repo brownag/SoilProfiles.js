@@ -1,6 +1,14 @@
 import { readFileSync } from 'fs';
 import path from 'path';
 import { munsellToHex, isMunsellValid } from '../src/core/munsell';
+import { hexToLab, deltaE2000 } from './helpers/ciede2000';
+
+type InterpolRow = [string, number, number, number, number, number, string[]];
+
+function loadInterpolRows(): InterpolRow[] {
+  const dataPath = path.join(__dirname, 'fixtures', 'munsell-reference-munsellinterpol.json');
+  return JSON.parse(readFileSync(dataPath, 'utf8')).rows;
+}
 
 /**
  * Munsell color conversion is now optional and user-driven (no longer automatic).
@@ -148,55 +156,59 @@ describe('Munsell Color Conversion', () => {
       }
     });
 
-    it('should closely approximate reference sRGB values across common soil hues', () => {
-      // Reference sRGB (0-1) for 2.5YR-5Y, value 2-8, chroma 1-8: [hue, value, chroma, r, g, b]
-      const dataPath = path.join(__dirname, 'fixtures', 'munsell-reference-soil.json');
-      const samples: [string, number, number, number, number, number][] = JSON.parse(
-        readFileSync(dataPath, 'utf8')
-      );
+    it('should match munsellinterpol within ΔE00 bounds on typical soil colors', () => {
+      const errors = loadInterpolRows()
+        .filter((row) => row[6].includes('typical'))
+        .map(([hue, value, chroma, L, a, b]) => {
+          const hex = munsellToHex(hue, value, chroma);
+          expect(hex).toBeTruthy();
+          return deltaE2000(hexToLab(hex!), [L, a, b]);
+        });
 
-      expect(samples.length).toBe(380);
-
-      let totalChannelError = 0;
-      let maxChannelError = 0;
-      for (const [hue, value, chroma, ...ref] of samples) {
-        const hex = munsellToHex(hue, value, chroma);
-        expect(hex).toMatch(/^#[0-9a-f]{6}$/i);
-        for (let i = 0; i < 3; i++) {
-          const err = Math.abs(parseInt(hex!.slice(1 + 2 * i, 3 + 2 * i), 16) / 255 - ref[i]);
-          totalChannelError += err;
-          maxChannelError = Math.max(maxChannelError, err);
-        }
-      }
-
-      // Continuous interpolation measures ~1.2/255 mean and ~8.5/255 max; the old
-      // discrete-hue lookup measured ~5.1/255 mean and ~37.5/255 max.
-      expect(totalChannelError / (samples.length * 3)).toBeLessThanOrEqual(3 / 255);
-      expect(maxChannelError).toBeLessThanOrEqual(12 / 255);
+      const mean = errors.reduce((sum, e) => sum + e, 0) / errors.length;
+      expect(mean).toBeLessThanOrEqual(0.5);
+      expect(Math.max(...errors)).toBeLessThanOrEqual(2.0);
     });
+
+    it.each(['gley', 'red', 'highC', 'dark', 'light', 'redox'])(
+      'should stay within ΔE00 2.6 on rare soil colors (%s)',
+      (domain) => {
+        const errors = loadInterpolRows()
+          .filter((row) => row[6].includes(domain))
+          .map(([hue, value, chroma, L, a, b]) => {
+            const hex = munsellToHex(hue, value, chroma);
+            expect(hex).toBeTruthy();
+            return deltaE2000(hexToLab(hex!), [L, a, b]);
+          });
+
+        expect(errors.length).toBeGreaterThan(0);
+        expect(Math.max(...errors)).toBeLessThanOrEqual(2.6);
+      }
+    );
 
     it('should place neutral grays on the same value scale as chromatic colors', () => {
       // N v/0 should match the lightness of near-neutral (chroma 1) renotation chips at the
       // same value. aqp's measured neutral chips (e.g. N 5/ at L* 35) are deliberately not
       // used: they sit ~1 value step darker than the renotation scale for N 2-8.
-      const samples: [string, number, number, number, number, number][] = JSON.parse(
-        readFileSync(path.join(__dirname, 'fixtures', 'munsell-reference-soil.json'), 'utf8')
-      );
+      // Reference chips come from the munsellinterpol fixture.
+      const rows = loadInterpolRows();
 
       let previous = -1;
       for (const value of [2, 2.5, 3, 4, 5, 6, 7, 8]) {
-        const chroma1 = samples.filter(([, v, c]) => v === value && c === 1);
+        const chroma1 = rows.filter(
+          ([, v, c, , , , domains]) => v === value && c === 1 && domains.includes('typical')
+        );
         expect(chroma1.length).toBeGreaterThan(0);
-        const expected =
-          chroma1.reduce((sum, [, , , r, g, b]) => sum + (r + g + b) / 3, 0) / chroma1.length;
+        const meanL = chroma1.reduce((sum, row) => sum + row[3], 0) / chroma1.length;
 
-        const hex = munsellToHex('N', value, 0)!;
+        const hex = munsellToHex('N', value, 0);
+        expect(hex).toBeTruthy();
         expect(hex).toMatch(/^#([0-9a-f]{2})\1\1$/i);
-        const gray = parseInt(hex.slice(1, 3), 16) / 255;
+        const L = hexToLab(hex!)[0];
 
-        expect(Math.abs(gray - expected)).toBeLessThanOrEqual(5 / 255);
-        expect(gray).toBeGreaterThan(previous);
-        previous = gray;
+        expect(Math.abs(L - meanL)).toBeLessThanOrEqual(1.0);
+        expect(L).toBeGreaterThan(previous);
+        previous = L;
       }
     });
   });

@@ -1,3 +1,19 @@
+# SoilProfiles.js 0.3.0 (unreleased)
+
+Behaviour changes:
+* `munsellToHex()` returns different (more accurate) hex colours for chromatic Munsell notations. Neutral grays (`N v/0`) are unchanged.
+* Hue is interpolated continuously between the 20 standard anchors (5R, 10R, … 5RP), so intermediate hues such as 2.5YR and 7.5YR are no longer snapped to a neighbouring anchor.
+* a\*/b\* now depend on Value as well as Hue and Chroma (fitted polynomial model). Against munsellinterpol, typical soil colours (10R–5Y, values 2–8, chromas 1–8) average 0.42 ΔE00 with a maximum of 1.4, down from 1.12 and 5.1. Gley, red, high-chroma, dark, light and redox colours stay within 2.6 ΔE00.
+
+Performance:
+* `munsellToHex()` caches up to 4,096 recent results and no longer builds and re-parses an intermediate `"H V/C"` string.
+* The Munsell module is smaller: 2,325 B gzipped, down from 2,529 B.
+
+Internal:
+* Removed the internal `munsellToRgbApprox()`, `hueData` and `interpolateLab` from `src/utils/munsell-approx.ts`. None of them were exported from the package entry points.
+* Corrected the documented source of the Munsell Value → Y polynomial: Newhall, Nickerson & Judd (1943), not ASTM D1535-08.
+* Munsell tests use a munsellinterpol reference fixture (`scripts/make_munsellinterpol_fixture.py`) and CIEDE2000 instead of aqp's sRGB table. The study behind the model is in `docs/research/munsell-approximation.md`.
+
 # SoilProfiles.js 0.2.0 (2026-09-01)
 
 Breaking changes:
