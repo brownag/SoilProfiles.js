@@ -205,6 +205,8 @@ Every model shares the library's L\* (Newhall scale) and clip/round pipeline; on
 
 The scripts are in `scripts/`. The large reference exports (`aqp_munsell.csv`, `mi_xyY.csv`) and the munsell.js bundle are git-ignored; steps 1–2 regenerate them.
 
+Steps 5–6 measure the pre-M4e anchor grid, which has since been replaced. Run them from a checkout of commit `4ded6e9` (`git worktree add ../munsell-study 4ded6e9`). There, `exp1.py` parses `hueData` from the TS source, and the benchmark scripts are present. The M4e fixture used by the tests is built by `scripts/make_munsellinterpol_fixture.py` from `mi_xyY.csv`.
+
 1. Export the reference data:
    - aqp: `Rscript -e 'library(aqp); data(munsell); write.csv(munsell,"aqp_munsell.csv",row.names=FALSE)'`.
    - RIT `all.dat`: `gh api repos/ncss-tech/aqp/contents/misc/utils/Munsell/munsell-all.dat.gz --jq .download_url | xargs curl -sLO`.
@@ -218,7 +220,7 @@ The scripts are in `scripts/`. The large reference exports (`aqp_munsell.csv`, `
 5. Models and metrics: `python3 -I exp1.py <expdir> aqp_munsell.csv all.dat osd_colors.csv src/utils/munsell-approx.ts` (numpy + scipy). Then `python3 -I table.py exp1_results.json`.
    - The Python port of the current algorithm (`mlib.py`) reproduces the TS hex output exactly for all 10,450 rows.
    - Candidate coefficient tables are written to `candidate_M4e.json` (20×8×2) and `candidate_M1g.json` (20×10×6×2).
-6. Benchmarks: `npx --prefix <repo> tsx bench.ts` and `bench2.ts` (2–3 M iterations after warm-up).
+6. Benchmarks (at `4ded6e9` only; the scripts were removed afterwards): `npx --prefix <repo> tsx scripts/bench.ts` and `scripts/bench2.ts` (2–3 M iterations after warm-up).
 7. Bundle size: `npx esbuild src/utils/munsell-approx.ts --bundle --format=esm --minify | gzip -9 | wc -c`.
 
 ## 7. Options compared
