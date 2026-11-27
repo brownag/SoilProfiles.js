@@ -233,7 +233,8 @@ Steps 5–6 measure the original value-independent anchor grid, which the librar
 4. OSD frequencies:
    - `git clone --depth 1 --filter=blob:none --sparse https://github.com/ncss-tech/SoilKnowledgeBase && git sparse-checkout set inst/extdata/OSD`.
    - Regex `\b(N|\d+(?:\.\d+)?(?:YR|GY|BG|PB|RP|R|Y|G|B|P))\s+(\d+(?:\.\d+)?)\s*/\s*(\d+(?:\.\d+)?)?` over each `TYPICAL PEDON.content`, split on `;` for the feature/matrix tag (`osd_colors.py`).
-5. Models and metrics: `python3 -I fit_munsell_models.py <expdir> aqp_munsell.csv all.dat osd_colors.csv src/utils/munsell-approx.ts` (numpy + scipy). Then `python3 -I make_results_table.py munsell-model-results.json`.
+5. Models and metrics, at `4ded6e9` (original file names): `python3 -I scripts/exp1.py <expdir> aqp_munsell.csv all.dat osd_colors.csv src/utils/munsell-approx.ts` (numpy + scipy). `<expdir>` holds `mi_xyY.csv` and receives the outputs. Then run `python3 -I scripts/table.py <expdir>/exp1_results.json`.
+   - The soil-book lookup-table experiment (M6) also reads `<expdir>/../dl_names/names.csv`. This is a CSV with a `munsell` column of Munsell Soil Color Book chip notations, such as a NASIS colour-name export. At `4ded6e9` the script imports `mlib` from `<expdir>`, so copy `scripts/mlib.py` there first. In the current tree, `fit_munsell_models.py` takes `names.csv` as an optional 6th argument and finds `munsell_color.py` itself.
    - The Python port of the current algorithm (`munsell_color.py`) reproduces the TS hex output exactly for all 10,450 rows.
    - Candidate coefficient tables are written to `munsell-ab-polynomial-coefficients.json` (M4e, 20×8×2) and `munsell-ab-grid-coefficients.json` (20×10×6×2).
 6. Benchmarks (at `4ded6e9` only; the scripts were removed afterwards): `npx --prefix <repo> tsx scripts/bench.ts` and `scripts/bench2.ts` (2–3 M iterations after warm-up).
