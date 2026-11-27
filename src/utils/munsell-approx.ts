@@ -19,7 +19,7 @@ const HUE_ANCHOR_ORDER = [
 
 // M4e polynomial coefficients, generated from scripts/candidate_M4e.json (anchor order HUE_ANCHOR_ORDER).
 // Basis: [C, C*V, C*V^2, C*V^3, C^2, C^2*V, C^2*V^2, C^3].
-export const COEF_A: readonly number[][] = [
+const COEF_A: readonly number[][] = [
   [5.196844, 0.406557, -0.162569, 0.010938, -0.103115, 0.014287, 0.000745, 0.000984],
   [5.524829, 0.146316, -0.106951, 0.007663, -0.106511, 0.008977, 0.001028, 0.002073],
   [5.032638, -0.032925, -0.042646, 0.003071, -0.00733, -0.019232, 0.002751, 0.000459],
@@ -42,7 +42,7 @@ export const COEF_A: readonly number[][] = [
   [5.077056, 0.299216, -0.132401, 0.008843, -0.089199, 0.018033, 0.000424, -0.000739],
 ];
 
-export const COEF_B: readonly number[][] = [
+const COEF_B: readonly number[][] = [
   [-2.198822, 1.484872, -0.224612, 0.010878, -0.007496, -0.00228, 0.000767, -0.001041],
   [-0.902165, 1.689568, -0.29493, 0.015565, -0.038328, 0.013703, -0.000134, -0.001589],
   [0.83345, 1.57507, -0.31753, 0.019569, -0.116643, 0.069489, -0.005461, -0.002138],
@@ -226,39 +226,4 @@ export function munsellToHexApprox(hue: string, value: number, chroma: number): 
   const g = Math.round(rgb.g * 255);
   const bl = Math.round(rgb.b * 255);
   return '#' + ((1 << 24) | (r << 16) | (g << 8) | bl).toString(16).slice(1);
-}
-
-/**
- * Parses a Munsell string in "H V/C" format and converts it to sRGB hex.
- * @param munsellString Munsell string in "H V/C" format.
- * @returns sRGB hex string or null.
- */
-export function munsellToRgbApprox(munsellString: string): string | null {
-  if (typeof munsellString !== 'string') {
-    return null;
-  }
-
-  const parts = munsellString.trim().split(/ +/);
-  if (parts.length !== 2) {
-    return null;
-  }
-
-  const hue = parts[0].toUpperCase();
-  const vc = parts[1].split('/');
-  if (vc.length !== 2) {
-    return null;
-  }
-
-  const valueStr = vc[0].trim();
-  let chromaStr = vc[1].trim();
-
-  if (hue === 'N' && (chromaStr === '' || chromaStr === '-')) {
-    chromaStr = '0';
-  }
-
-  if (valueStr === '' || chromaStr === '') {
-    return null;
-  }
-
-  return munsellToHexApprox(hue, Number(valueStr), Number(chromaStr));
 }
