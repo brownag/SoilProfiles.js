@@ -16,7 +16,7 @@
 | Wave | Task | Title | Status | Worker model | Commit |
 |---|---|---|---|---|---|
 | 1 | `4.1.1` | Low-value fit script, coefficient tables, holdout fixture | `pending` | | |
-| gate | — | User picks candidate; holdout bounds set | `pending` | | |
+| gate | — | User picks candidate; holdout bounds set | `done` (hinge, all-points fit) | — | — |
 | 2 | `4.2.1` | Port chosen candidate, allocation-free hot path | `pending` | | |
 | 2 | `4.2.2` | Rare bounds 2.0, highC C ≤ 12, holdout test | `pending` | | |
 | 3 | `4.3.1` | Commit research report, portable and descriptive | `pending` | | |

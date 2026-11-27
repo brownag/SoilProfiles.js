@@ -47,6 +47,9 @@ The fit must be reproducible from committed code. An honest holdout test must ch
 - **2026-11-27 — Holdout**: the shipped coefficients are fit with the 20% holdout excluded. The holdout rule: SHA-256 of `"{hue}/{value}/{chroma}"`, first 8 hex digits as an int, mod 5 == 0, over the training pool V ≥ 1, C ≤ 12, finite Lab. Fixture numbers may shift by a few hundredths compared with the report's all-points fit.
 - **2026-11-27 — Branch**: `feat/munsell-low-value-fit`, created from `main` **after PR #31 merges** (user choice). PR #31's CodeRabbit findings were fixed and pushed in `f71eae6`, `4d1bf08` and `64a0cb0`.
 - **2026-11-27 — Branch (revised)**: PR #31 was still open at run time. The user chose to stack `feat/munsell-low-value-fit` on PR #31 HEAD `64a0cb0` and rebase onto `main` after #31 merges.
+- **2026-11-27 — Wave 1 bound failure (gate)**: with the holdout excluded from the fit, both candidates miss dark max ≤ 2.0 on 5Y 1/4 (2.143), a held-out chip that is also in the main fixture. The user chose to **ship the all-points fit** (holdout included). The holdout-excluded fit is still computed and reported as the honest generalization measure (results JSON + docs). This supersedes the "Holdout" entry's "shipped coefficients are fit with the 20% holdout excluded". The holdout test now checks the shipped model on those points, which were in its training set.
+- **2026-11-27 — Candidate (gate)**: the user picked **hinge** (9 terms, `C·max(0,3−V)²`). All-points hinge: typical 0.383/0.884/1.433, gley max 1.530, red 1.854, highC (C ≤ 12) 1.227, dark 1.807, light 1.084, redox 0.813. Holdout points: all 0.434/2.647, low 0.430/1.545, gley 0.389/1.406.
+- **2026-11-27 — Holdout bounds (gate)**: `all` mean ≤ 0.5, max ≤ 2.9; `low` mean ≤ 0.5, max ≤ 1.8; `gley` max ≤ 1.7 (measured shipped max + 0.2, rounded up to 0.1).
 - **2026-11-27 — Models**: 4.1.1 runs on `sonnet`. All other tasks run on `haiku` and escalate to `sonnet` per the ladder.
 - **2026-11-27 — Planning artifacts**: track `EXECUTION_PLAN_4.md`, `PROMPT_TEMPLATE_4.md`, `STATE_4.md` and `GOALS.md` with `git add -f` in separate `docs(planning):` commits on the new branch. `planning/tasks/*.todo.md` stays untracked.
 - **2026-11-27 — README**: do not link to the research doc from the README (user).
@@ -139,7 +142,7 @@ Files are pairwise disjoint within each wave. Wave 2's combined result is verifi
      - the holdout rule (Decision Log);
      - `basis` for `shape` and `hinge`;
      - `design`;
-     - `fit` with **holdout excluded**, column-normalized `lstsq` with `lapack_driver='gelsy'`, rounded to 6 decimals.
+     - `fit` (see step 6 for which rows), column-normalized `lstsq` with `lapack_driver='gelsy'`, rounded to 6 decimals.
 
      Pass only the two models. Do not port the other experiments.
   3. Write `scripts/munsell-ab-shape-coefficients.json` and `scripts/munsell-ab-hinge-coefficients.json`. Each has keys:
@@ -157,7 +160,7 @@ Files are pairwise disjoint within each wave. Wave 2's combined result is verifi
      - the chip naming the worst case in each domain.
 
      Round floats to 4 decimals. Also print a compact table to stdout.
-  6. Add a `--all-points` flag. It fits on the whole training pool, prints the same metric table, and writes no files. It exists only to compare against the research report.
+  6. *(Revised at gate.)* No `--all-points` flag. Every run fits each candidate twice: **all-points** (whole training pool, the shipped coefficients) and **holdout-excluded** (generalization check). The coefficient JSONs hold the all-points fit; their `fit` string says the holdout rule is used for reporting only. `low-value-fit-results.json` has, per candidate, `all_points` and `holdout_excluded` blocks, each with main-fixture and holdout metrics; `current` has one block. stdout prints both tables.
   7. Deterministic output: sorted keys where order is not meaningful, fixed formatting. Set `OPENBLAS_NUM_THREADS=1` inside the script before importing numpy (`os.environ.setdefault`).
 - **Anchors**: `dark_parity.py` lines listed in Recon. `munsell_color.py` `hue_angle` (:10), `d1535_Y` (:16), `lab_to_rgb` (:34), `quant` (:47), `rgb_to_lab` (:51), `de2000` (:63). Reference implementation: `.development/dark_parity.py`.
 - **Constraints**:
@@ -167,23 +170,23 @@ Files are pairwise disjoint within each wave. Wave 2's combined result is verifi
 - **Acceptance**:
   - `python3 -I scripts/fit_low_value_models.py /home/andrew/workspace/SoilProfiles.js/scripts/mi_xyY.csv scripts` exits 0.
   - Running it a second time gives byte-identical output for all four files (`cmp` against copies in `.development/o4/`).
-  - **Port check**: `--all-points` (a committed flag: fit without excluding the holdout, print metrics only, write no files) gives main-fixture metrics that match research report §3 within 0.005. Targets: `shape` typical mean 0.415, gley and dark max 1.948; `hinge` typical mean 0.383, gley max 1.530, dark max 1.807.
-  - The holdout-excluded `hinge` holdout metrics match report §4 within 0.005: all 0.447/2.822, low 0.470/2.143, gley 0.418/1.406.
+  - **Port check** *(revised at gate)*: the `all_points` blocks give main-fixture metrics that match research report §3 within 0.005. Targets: `shape` typical mean 0.415, gley and dark max 1.948; `hinge` typical mean 0.383, gley max 1.530, dark max 1.807.
+  - The `holdout_excluded` `hinge` holdout metrics match report §4 within 0.005: all 0.447/2.822, low 0.470/2.143, gley 0.418/1.406.
   - The holdout fixture row count equals the holdout size printed by the script (report: 1,187 rows; 95 `low`; 77 `gley`).
-  - **Report the full metric table for both candidates** (main fixture with highC C ≤ 12, plus holdout), and state for each candidate whether it passes: typical mean ≤ 0.5 and max ≤ 2.0, and every rare domain max ≤ 2.0. Never loosen these. If neither passes, stop and report.
+  - **Report the full metric table for both candidates** (main fixture with highC C ≤ 12, plus holdout), and state for each candidate whether it passes: typical mean ≤ 0.5 and max ≤ 2.0, and every rare domain max ≤ 2.0. Never loosen these. If neither passes, stop and report. *(Gate: the pass check applies to the `all_points` fit, the shipped one.)*
   - Delete `.development/o4/`.
 
 ### Gate (orchestrator + user, between Waves 1 and 2)
 - Present both candidates' metrics. The size estimate comes from bundling each coefficient table into a scratch copy of the module.
 - **The user picks.** Record the choice in the Decision Log.
 - Set holdout test bounds: `all` and `low` mean ≤ 0.5, and per-tag max ≤ measured (shipped candidate, from `low-value-fit-results.json`) + 0.2, rounded up to 0.1. Record them in the Decision Log and in 4.2.2's spec.
-- Fill 4.2.1's `{{CANDIDATE}}` slots.
+- Fill 4.2.1's `hinge` slots.
 
 ### 4.2.1 — Port the chosen candidate, allocation-free hot path
 - **Repo**: SoilProfiles.js, worktree at the branch HEAD. **Depends on**: gate. **Model**: haiku.
 - **Files in scope**: edit `src/utils/munsell-approx.ts`. Scratch goes in `.development/o4/` inside the worktree.
 - **Spec**:
-  1. Replace `COEF_A` and `COEF_B` with the tables from `scripts/munsell-ab-{{CANDIDATE}}-coefficients.json`. Generate them **mechanically** with a script, never by hand. Assert that the anchor order equals `HUE_ANCHOR_ORDER`. Keep them module-private.
+  1. Replace `COEF_A` and `COEF_B` with the tables from `scripts/munsell-ab-hinge-coefficients.json`. Generate them **mechanically** with a script, never by hand. Assert that the anchor order equals `HUE_ANCHOR_ORDER`. Keep them module-private.
   2. Update the coefficient comment: the basis terms in order and the source JSON file name.
   3. Evaluate the basis **without arrays or closures**:
      - compute the terms into local consts (`shape`: replace `Cc·V³` with `Cc·w⁸`, w = 1 − V/10, by squaring; `hinge`: append `Cc·h²`, h = max(0, 3 − V));
@@ -198,7 +201,7 @@ Files are pairwise disjoint within each wave. Wave 2's combined result is verifi
   - `npx tsc --noEmit` exits 0.
   - `grep -nE '=>|return \{|= \[|\.map\(|\.reduce\(' src/utils/munsell-approx.ts` prints only the module-level constant declarations (`HUE_FAMILIES`, `HUE_ANCHOR_ORDER`, `COEF_A`, `COEF_B`). Today it also prints `f_inv`, `gamma_correct`, `clamp`, two object returns, `basis` and `dot`. Turn `f_inv`, `gamma_correct` and `clamp` into module-level `function`s. Report the output.
   - Neutral baseline identical (scratch check via esbuild + node).
-  - In the same scratch script, load both fixtures and compute ΔE00 with `tests/helpers/ciede2000.ts`. The results must match `scripts/low-value-fit-results.json` for `{{CANDIDATE}}` within 0.002 on every reported mean and max. They must also pass: typical mean ≤ 0.5 and max ≤ 2.0, every rare domain max ≤ 2.0 (highC C ≤ 12).
+  - In the same scratch script, load both fixtures and compute ΔE00 with `tests/helpers/ciede2000.ts`. The results must match `scripts/low-value-fit-results.json` for `hinge` within 0.002 on every reported mean and max. They must also pass: typical mean ≤ 0.5 and max ≤ 2.0, every rare domain max ≤ 2.0 (highC C ≤ 12).
   - `npx esbuild src/utils/munsell-approx.ts --bundle --format=esm --minify | gzip -9 | wc -c` ≤ 2,525 (2,325 + 200).
   - Benchmark in one scratch run: uncached `munsellToHex` for 10YR 4/3 over 1e6 distinct inputs (value = 4 + (i % 1e6)·1e-7), against a bundle of `git show HEAD:` copies of `src/core/munsell.ts` and `src/utils/munsell-approx.ts`. The new code must not be slower than old + 5%. Report both, plus the cached ns.
   - `npx jest tests/munsell.test.ts -t '^(?!.*(rare soil colors|holdout)).*$'` passes.
@@ -212,7 +215,7 @@ Files are pairwise disjoint within each wave. Wave 2's combined result is verifi
   2. Add `should match the held-out munsellinterpol points`:
      - load `tests/fixtures/munsell-reference-holdout.json` (same row layout as the main fixture; tags `all`, `low`, `gley`);
      - for each tag, compute ΔE00 of `munsellToHex(h, v, c)` against the row's Lab;
-     - assert the bounds recorded at the gate: {{HOLDOUT_BOUNDS}}.
+     - assert the bounds recorded at the gate: `all` mean ≤ 0.5 and max ≤ 2.9; `low` mean ≤ 0.5 and max ≤ 1.8; `gley` max ≤ 1.7.
 
      Use `it.each` over the tags, with the tag in the title. Generalize `loadInterpolRows` to take the fixture name rather than duplicating it.
   3. Do not change any other test.
