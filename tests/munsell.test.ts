@@ -5,8 +5,8 @@ import { hexToLab, deltaE2000 } from './helpers/ciede2000';
 
 type InterpolRow = [string, number, number, number, number, number, string[]];
 
-function loadInterpolRows(): InterpolRow[] {
-  const dataPath = path.join(__dirname, 'fixtures', 'munsell-reference-munsellinterpol.json');
+function loadInterpolRows(fixture: string): InterpolRow[] {
+  const dataPath = path.join(__dirname, 'fixtures', fixture);
   return JSON.parse(readFileSync(dataPath, 'utf8')).rows;
 }
 
@@ -157,7 +157,7 @@ describe('Munsell Color Conversion', () => {
     });
 
     it('should match munsellinterpol within ΔE00 bounds on typical soil colors', () => {
-      const errors = loadInterpolRows()
+      const errors = loadInterpolRows('munsell-reference-munsellinterpol.json')
         .filter((row) => row[6].includes('typical'))
         .map(([hue, value, chroma, L, a, b]) => {
           const hex = munsellToHex(hue, value, chroma);
@@ -171,10 +171,15 @@ describe('Munsell Color Conversion', () => {
     });
 
     it.each(['gley', 'red', 'highC', 'dark', 'light', 'redox'])(
-      'should stay within ΔE00 2.6 on rare soil colors (%s)',
+      'should stay within ΔE00 2.0 on rare soil colors (%s)',
       (domain) => {
-        const errors = loadInterpolRows()
-          .filter((row) => row[6].includes(domain))
+        const errors = loadInterpolRows('munsell-reference-munsellinterpol.json')
+          .filter(
+            (row) =>
+              row[6].includes(domain) &&
+              // C 13–14 is extrapolated and not a real soil colour.
+              (domain !== 'highC' || row[2] <= 12)
+          )
           .map(([hue, value, chroma, L, a, b]) => {
             const hex = munsellToHex(hue, value, chroma);
             expect(hex).toBeTruthy();
@@ -182,16 +187,39 @@ describe('Munsell Color Conversion', () => {
           });
 
         expect(errors.length).toBeGreaterThan(0);
-        expect(Math.max(...errors)).toBeLessThanOrEqual(2.6);
+        const max = Math.max(...errors);
+        expect(max).toBeLessThanOrEqual(2.0);
       }
     );
+
+    it.each([
+      ['all', { mean: 0.5, max: 2.9 }],
+      ['low', { mean: 0.5, max: 1.8 }],
+      ['gley', { max: 1.7 }],
+    ] as const)('should match the held-out munsellinterpol points (%s)', (tag, bounds) => {
+      const errors = loadInterpolRows('munsell-reference-holdout.json')
+        .filter((row) => row[6].includes(tag))
+        .map(([hue, value, chroma, L, a, b]) => {
+          const hex = munsellToHex(hue, value, chroma);
+          expect(hex).toBeTruthy();
+          return deltaE2000(hexToLab(hex!), [L, a, b]);
+        });
+
+      expect(errors.length).toBeGreaterThan(0);
+      const mean = errors.reduce((sum, e) => sum + e, 0) / errors.length;
+      const max = Math.max(...errors);
+      if ('mean' in bounds) {
+        expect(mean).toBeLessThanOrEqual(bounds.mean);
+      }
+      expect(max).toBeLessThanOrEqual(bounds.max);
+    });
 
     it('should place neutral grays on the same value scale as chromatic colors', () => {
       // N v/0 should match the lightness of near-neutral (chroma 1) renotation chips at the
       // same value. aqp's measured neutral chips (e.g. N 5/ at L* 35) are deliberately not
       // used: they sit ~1 value step darker than the renotation scale for N 2-8.
       // Reference chips come from the munsellinterpol fixture.
-      const rows = loadInterpolRows();
+      const rows = loadInterpolRows('munsell-reference-munsellinterpol.json');
 
       let previous = -1;
       for (const value of [2, 2.5, 3, 4, 5, 6, 7, 8]) {
