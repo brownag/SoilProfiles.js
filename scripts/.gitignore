@@ -1,0 +1,7 @@
+# Regenerable reference exports and third-party bundle; see docs/research/munsell-approximation.md
+aqp_munsell.csv
+mi_xyY.csv
+mjs_bundle.js
+mjs_hex.csv
+ts_current.csv
+__pycache__/

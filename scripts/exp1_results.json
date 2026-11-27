@@ -1,0 +1,2602 @@
+[
+ {
+  "model": "M0 current (20 anchors x chroma, a*b* value-independent)",
+  "bytes": [
+   2056,
+   946
+  ],
+  "extra": "",
+  "typical (10R-5Y, V2-8, C1-8)": [
+   1.18,
+   2.34,
+   5.3
+  ],
+  "gley (10Y-5G C1-4, 10G-5PB C1-2; V2-8)": [
+   1.27,
+   3.04,
+   4.3
+  ],
+  "red pages 5R/7.5R V2-8 C1-8": [
+   1.54,
+   4.08,
+   5.6
+  ],
+  "high chroma 10R-5Y C8-14": [
+   0.94,
+   2.7,
+   5.3
+  ],
+  "dark V1-2.5 soil hues C1-4": [
+   2.74,
+   5.2,
+   11.7
+  ],
+  "light V8.5-9.5 7.5YR-5Y C1-4": [
+   1.99,
+   2.6,
+   2.7
+  ],
+  "redox conc. 2.5YR-10YR V3-7 C6-8": [
+   0.7,
+   1.24,
+   1.6
+  ],
+  "all chromatic aqp rows": [
+   2.6,
+   8.6,
+   28.3
+  ],
+  "MI typical (10R-5Y, V2-8, C1-8)": [
+   1.12,
+   2.34,
+   5.1
+  ],
+  "MI gley (10Y-5G C1-4, 10G-5PB C1-2; V2-8)": [
+   1.05,
+   2.32,
+   3.2
+  ],
+  "MI red pages 5R/7.5R V2-8 C1-8": [
+   1.48,
+   3.57,
+   5.7
+  ],
+  "MI high chroma 10R-5Y C8-14": [
+   0.94,
+   2.52,
+   5.1
+  ],
+  "MI dark V1-2.5 soil hues C1-4": [
+   2.19,
+   4.04,
+   6.1
+  ],
+  "MI light V8.5-9.5 7.5YR-5Y C1-4": [
+   1.83,
+   2.6,
+   2.9
+  ],
+  "MI redox conc. 2.5YR-10YR V3-7 C6-8": [
+   0.72,
+   1.5,
+   1.8
+  ],
+  "MI all chromatic aqp rows": [
+   2.53,
+   8.59,
+   28.3
+  ],
+  "MI OSD-weighted mean dE00": 0.781,
+  "MI OSD-weighted p95 dE00": 1.58,
+  "OSD-weighted mean dE00": 0.803,
+  "OSD-weighted p95 dE00": 1.49,
+  "vs renotation typical": [
+   1.09,
+   2.27,
+   4.9
+  ],
+  "vs renotation all C<=16": [
+   1.92,
+   5.97,
+   15.4
+  ],
+  "CIE76 typical mean": 1.53,
+  "CIE76 all mean": 5.24
+ },
+ {
+  "model": "M1a 20 anchors x V1-10 x C{2..12,16}, sampled",
+  "bytes": [
+   14036,
+   5340
+  ],
+  "extra": "2800 numbers",
+  "typical (10R-5Y, V2-8, C1-8)": [
+   0.5,
+   0.94,
+   3.0
+  ],
+  "gley (10Y-5G C1-4, 10G-5PB C1-2; V2-8)": [
+   0.58,
+   1.46,
+   2.8
+  ],
+  "red pages 5R/7.5R V2-8 C1-8": [
+   0.56,
+   0.96,
+   3.3
+  ],
+  "high chroma 10R-5Y C8-14": [
+   0.38,
+   0.97,
+   2.2
+  ],
+  "dark V1-2.5 soil hues C1-4": [
+   1.3,
+   2.31,
+   10.6
+  ],
+  "light V8.5-9.5 7.5YR-5Y C1-4": [
+   0.62,
+   1.29,
+   1.8
+  ],
+  "redox conc. 2.5YR-10YR V3-7 C6-8": [
+   0.37,
+   0.66,
+   0.8
+  ],
+  "all chromatic aqp rows": [
+   0.9,
+   2.98,
+   18.2
+  ],
+  "MI typical (10R-5Y, V2-8, C1-8)": [
+   0.23,
+   0.82,
+   1.4
+  ],
+  "MI gley (10Y-5G C1-4, 10G-5PB C1-2; V2-8)": [
+   0.14,
+   0.59,
+   1.3
+  ],
+  "MI red pages 5R/7.5R V2-8 C1-8": [
+   0.24,
+   0.79,
+   1.3
+  ],
+  "MI high chroma 10R-5Y C8-14": [
+   0.2,
+   0.64,
+   1.5
+  ],
+  "MI dark V1-2.5 soil hues C1-4": [
+   0.26,
+   0.74,
+   1.2
+  ],
+  "MI light V8.5-9.5 7.5YR-5Y C1-4": [
+   0.18,
+   0.62,
+   1.1
+  ],
+  "MI redox conc. 2.5YR-10YR V3-7 C6-8": [
+   0.23,
+   0.69,
+   0.9
+  ],
+  "MI all chromatic aqp rows": [
+   0.66,
+   2.74,
+   18.1
+  ],
+  "MI OSD-weighted mean dE00": 0.22,
+  "MI OSD-weighted p95 dE00": 0.88,
+  "OSD-weighted mean dE00": 0.459,
+  "OSD-weighted p95 dE00": 0.93,
+  "vs renotation typical": [
+   0.21,
+   0.74,
+   1.3
+  ],
+  "vs renotation all C<=16": [
+   0.29,
+   0.92,
+   4.8
+  ],
+  "CIE76 typical mean": 0.67,
+  "CIE76 all mean": 1.83
+ },
+ {
+  "model": "M1b same grid, least-squares fit",
+  "bytes": [
+   14108,
+   5340
+  ],
+  "extra": "2800 numbers",
+  "typical (10R-5Y, V2-8, C1-8)": [
+   0.49,
+   0.92,
+   3.0
+  ],
+  "gley (10Y-5G C1-4, 10G-5PB C1-2; V2-8)": [
+   0.6,
+   1.46,
+   3.2
+  ],
+  "red pages 5R/7.5R V2-8 C1-8": [
+   0.56,
+   0.89,
+   3.3
+  ],
+  "high chroma 10R-5Y C8-14": [
+   0.38,
+   0.98,
+   2.4
+  ],
+  "dark V1-2.5 soil hues C1-4": [
+   1.34,
+   2.43,
+   10.0
+  ],
+  "light V8.5-9.5 7.5YR-5Y C1-4": [
+   0.58,
+   1.29,
+   1.8
+  ],
+  "redox conc. 2.5YR-10YR V3-7 C6-8": [
+   0.35,
+   0.58,
+   0.6
+  ],
+  "all chromatic aqp rows": [
+   0.82,
+   2.61,
+   16.8
+  ],
+  "MI typical (10R-5Y, V2-8, C1-8)": [
+   0.21,
+   0.68,
+   1.3
+  ],
+  "MI gley (10Y-5G C1-4, 10G-5PB C1-2; V2-8)": [
+   0.19,
+   0.65,
+   1.3
+  ],
+  "MI red pages 5R/7.5R V2-8 C1-8": [
+   0.23,
+   0.64,
+   1.2
+  ],
+  "MI high chroma 10R-5Y C8-14": [
+   0.18,
+   0.51,
+   0.9
+  ],
+  "MI dark V1-2.5 soil hues C1-4": [
+   0.25,
+   0.73,
+   1.5
+  ],
+  "MI light V8.5-9.5 7.5YR-5Y C1-4": [
+   0.17,
+   0.57,
+   0.8
+  ],
+  "MI redox conc. 2.5YR-10YR V3-7 C6-8": [
+   0.23,
+   0.59,
+   0.8
+  ],
+  "MI all chromatic aqp rows": [
+   0.58,
+   2.26,
+   16.7
+  ],
+  "MI OSD-weighted mean dE00": 0.203,
+  "MI OSD-weighted p95 dE00": 0.86,
+  "OSD-weighted mean dE00": 0.448,
+  "OSD-weighted p95 dE00": 0.79,
+  "vs renotation typical": [
+   0.19,
+   0.68,
+   1.3
+  ],
+  "vs renotation all C<=16": [
+   0.27,
+   0.75,
+   3.2
+  ],
+  "CIE76 typical mean": 0.67,
+  "CIE76 all mean": 1.66
+ },
+ {
+  "model": "M1c M1b nodes, polar (LCh) hue blend",
+  "bytes": [
+   14108,
+   5340
+  ],
+  "extra": "2800 numbers",
+  "typical (10R-5Y, V2-8, C1-8)": [
+   0.49,
+   0.98,
+   3.0
+  ],
+  "gley (10Y-5G C1-4, 10G-5PB C1-2; V2-8)": [
+   0.6,
+   1.46,
+   3.2
+  ],
+  "red pages 5R/7.5R V2-8 C1-8": [
+   0.55,
+   0.96,
+   3.3
+  ],
+  "high chroma 10R-5Y C8-14": [
+   0.4,
+   1.02,
+   2.5
+  ],
+  "dark V1-2.5 soil hues C1-4": [
+   1.35,
+   2.43,
+   10.0
+  ],
+  "light V8.5-9.5 7.5YR-5Y C1-4": [
+   0.56,
+   1.36,
+   1.8
+  ],
+  "redox conc. 2.5YR-10YR V3-7 C6-8": [
+   0.35,
+   0.61,
+   0.8
+  ],
+  "all chromatic aqp rows": [
+   0.85,
+   2.69,
+   17.1
+  ],
+  "MI typical (10R-5Y, V2-8, C1-8)": [
+   0.2,
+   0.71,
+   1.3
+  ],
+  "MI gley (10Y-5G C1-4, 10G-5PB C1-2; V2-8)": [
+   0.19,
+   0.65,
+   1.3
+  ],
+  "MI red pages 5R/7.5R V2-8 C1-8": [
+   0.22,
+   0.49,
+   0.8
+  ],
+  "MI high chroma 10R-5Y C8-14": [
+   0.21,
+   0.6,
+   1.0
+  ],
+  "MI dark V1-2.5 soil hues C1-4": [
+   0.27,
+   0.76,
+   1.5
+  ],
+  "MI light V8.5-9.5 7.5YR-5Y C1-4": [
+   0.22,
+   0.74,
+   1.1
+  ],
+  "MI redox conc. 2.5YR-10YR V3-7 C6-8": [
+   0.19,
+   0.56,
+   0.8
+  ],
+  "MI all chromatic aqp rows": [
+   0.6,
+   2.38,
+   17.0
+  ],
+  "MI OSD-weighted mean dE00": 0.176,
+  "MI OSD-weighted p95 dE00": 0.68,
+  "OSD-weighted mean dE00": 0.44,
+  "OSD-weighted p95 dE00": 0.79,
+  "vs renotation typical": [
+   0.18,
+   0.64,
+   0.9
+  ],
+  "vs renotation all C<=16": [
+   0.29,
+   0.85,
+   4.5
+  ],
+  "CIE76 typical mean": 0.7,
+  "CIE76 all mean": 1.74
+ },
+ {
+  "model": "M1d 20 anchors x V{1,2,3,5,7,9,10} x C{2..12,16}, LS",
+  "bytes": [
+   9875,
+   3792
+  ],
+  "extra": "1960 numbers",
+  "typical (10R-5Y, V2-8, C1-8)": [
+   0.5,
+   0.99,
+   3.0
+  ],
+  "gley (10Y-5G C1-4, 10G-5PB C1-2; V2-8)": [
+   0.63,
+   1.51,
+   3.2
+  ],
+  "red pages 5R/7.5R V2-8 C1-8": [
+   0.58,
+   0.89,
+   3.4
+  ],
+  "high chroma 10R-5Y C8-14": [
+   0.4,
+   0.98,
+   2.4
+  ],
+  "dark V1-2.5 soil hues C1-4": [
+   1.36,
+   2.43,
+   10.0
+  ],
+  "light V8.5-9.5 7.5YR-5Y C1-4": [
+   0.63,
+   1.29,
+   1.8
+  ],
+  "redox conc. 2.5YR-10YR V3-7 C6-8": [
+   0.36,
+   0.55,
+   0.7
+  ],
+  "all chromatic aqp rows": [
+   0.83,
+   2.6,
+   17.5
+  ],
+  "MI typical (10R-5Y, V2-8, C1-8)": [
+   0.26,
+   0.68,
+   1.2
+  ],
+  "MI gley (10Y-5G C1-4, 10G-5PB C1-2; V2-8)": [
+   0.22,
+   0.7,
+   1.3
+  ],
+  "MI red pages 5R/7.5R V2-8 C1-8": [
+   0.24,
+   0.58,
+   1.2
+  ],
+  "MI high chroma 10R-5Y C8-14": [
+   0.22,
+   0.63,
+   1.0
+  ],
+  "MI dark V1-2.5 soil hues C1-4": [
+   0.28,
+   0.76,
+   1.5
+  ],
+  "MI light V8.5-9.5 7.5YR-5Y C1-4": [
+   0.23,
+   0.6,
+   0.9
+  ],
+  "MI redox conc. 2.5YR-10YR V3-7 C6-8": [
+   0.26,
+   0.64,
+   0.9
+  ],
+  "MI all chromatic aqp rows": [
+   0.59,
+   2.22,
+   17.4
+  ],
+  "MI OSD-weighted mean dE00": 0.343,
+  "MI OSD-weighted p95 dE00": 0.68,
+  "OSD-weighted mean dE00": 0.482,
+  "OSD-weighted p95 dE00": 0.87,
+  "vs renotation typical": [
+   0.24,
+   0.62,
+   1.0
+  ],
+  "vs renotation all C<=16": [
+   0.31,
+   0.8,
+   3.6
+  ],
+  "CIE76 typical mean": 0.72,
+  "CIE76 all mean": 1.7
+ },
+ {
+  "model": "M2a 40 hues (renotation grid) x V1-10 x C{2..12,16}, sampled",
+  "bytes": [
+   28053,
+   10334
+  ],
+  "extra": "5600 numbers",
+  "typical (10R-5Y, V2-8, C1-8)": [
+   0.45,
+   0.88,
+   3.0
+  ],
+  "gley (10Y-5G C1-4, 10G-5PB C1-2; V2-8)": [
+   0.58,
+   1.46,
+   2.8
+  ],
+  "red pages 5R/7.5R V2-8 C1-8": [
+   0.51,
+   0.89,
+   3.3
+  ],
+  "high chroma 10R-5Y C8-14": [
+   0.36,
+   0.94,
+   2.3
+  ],
+  "dark V1-2.5 soil hues C1-4": [
+   1.31,
+   2.31,
+   10.6
+  ],
+  "light V8.5-9.5 7.5YR-5Y C1-4": [
+   0.56,
+   1.28,
+   1.8
+  ],
+  "redox conc. 2.5YR-10YR V3-7 C6-8": [
+   0.28,
+   0.51,
+   0.8
+  ],
+  "all chromatic aqp rows": [
+   0.77,
+   2.6,
+   15.1
+  ],
+  "MI typical (10R-5Y, V2-8, C1-8)": [
+   0.13,
+   0.6,
+   1.2
+  ],
+  "MI gley (10Y-5G C1-4, 10G-5PB C1-2; V2-8)": [
+   0.14,
+   0.59,
+   1.3
+  ],
+  "MI red pages 5R/7.5R V2-8 C1-8": [
+   0.11,
+   0.47,
+   0.7
+  ],
+  "MI high chroma 10R-5Y C8-14": [
+   0.11,
+   0.43,
+   0.9
+  ],
+  "MI dark V1-2.5 soil hues C1-4": [
+   0.23,
+   0.73,
+   1.2
+  ],
+  "MI light V8.5-9.5 7.5YR-5Y C1-4": [
+   0.09,
+   0.49,
+   0.8
+  ],
+  "MI redox conc. 2.5YR-10YR V3-7 C6-8": [
+   0.05,
+   0.32,
+   0.7
+  ],
+  "MI all chromatic aqp rows": [
+   0.49,
+   2.16,
+   15.8
+  ],
+  "MI OSD-weighted mean dE00": 0.108,
+  "MI OSD-weighted p95 dE00": 0.68,
+  "OSD-weighted mean dE00": 0.417,
+  "OSD-weighted p95 dE00": 0.79,
+  "vs renotation typical": [
+   0.07,
+   0.44,
+   0.9
+  ],
+  "vs renotation all C<=16": [
+   0.14,
+   0.43,
+   1.0
+  ],
+  "CIE76 typical mean": 0.62,
+  "CIE76 all mean": 1.53
+ },
+ {
+  "model": "M2b 40 hues x V1-10 x C up to 50 (near-full renotation), sampled",
+  "bytes": [
+   50433,
+   18995
+  ],
+  "extra": "9600 numbers",
+  "typical (10R-5Y, V2-8, C1-8)": [
+   0.45,
+   0.88,
+   3.0
+  ],
+  "gley (10Y-5G C1-4, 10G-5PB C1-2; V2-8)": [
+   0.58,
+   1.46,
+   2.8
+  ],
+  "red pages 5R/7.5R V2-8 C1-8": [
+   0.51,
+   0.89,
+   3.3
+  ],
+  "high chroma 10R-5Y C8-14": [
+   0.35,
+   0.97,
+   2.3
+  ],
+  "dark V1-2.5 soil hues C1-4": [
+   1.31,
+   2.31,
+   10.6
+  ],
+  "light V8.5-9.5 7.5YR-5Y C1-4": [
+   0.56,
+   1.28,
+   1.8
+  ],
+  "redox conc. 2.5YR-10YR V3-7 C6-8": [
+   0.28,
+   0.51,
+   0.8
+  ],
+  "all chromatic aqp rows": [
+   0.61,
+   1.98,
+   18.5
+  ],
+  "MI typical (10R-5Y, V2-8, C1-8)": [
+   0.13,
+   0.6,
+   1.2
+  ],
+  "MI gley (10Y-5G C1-4, 10G-5PB C1-2; V2-8)": [
+   0.14,
+   0.59,
+   1.3
+  ],
+  "MI red pages 5R/7.5R V2-8 C1-8": [
+   0.11,
+   0.47,
+   0.7
+  ],
+  "MI high chroma 10R-5Y C8-14": [
+   0.1,
+   0.4,
+   0.9
+  ],
+  "MI dark V1-2.5 soil hues C1-4": [
+   0.23,
+   0.73,
+   1.2
+  ],
+  "MI light V8.5-9.5 7.5YR-5Y C1-4": [
+   0.09,
+   0.49,
+   0.8
+  ],
+  "MI redox conc. 2.5YR-10YR V3-7 C6-8": [
+   0.05,
+   0.32,
+   0.7
+  ],
+  "MI all chromatic aqp rows": [
+   0.28,
+   0.71,
+   16.6
+  ],
+  "MI OSD-weighted mean dE00": 0.108,
+  "MI OSD-weighted p95 dE00": 0.68,
+  "OSD-weighted mean dE00": 0.417,
+  "OSD-weighted p95 dE00": 0.79,
+  "vs renotation typical": [
+   0.07,
+   0.44,
+   0.9
+  ],
+  "vs renotation all C<=16": [
+   0.14,
+   0.43,
+   1.0
+  ],
+  "CIE76 typical mean": 0.62,
+  "CIE76 all mean": 1.06
+ },
+ {
+  "model": "M0-LS current structure (value-independent), LS refit",
+  "bytes": [
+   1353,
+   597
+  ],
+  "extra": "value-independent",
+  "typical (10R-5Y, V2-8, C1-8)": [
+   1.17,
+   2.25,
+   4.7
+  ],
+  "gley (10Y-5G C1-4, 10G-5PB C1-2; V2-8)": [
+   1.35,
+   3.28,
+   5.2
+  ],
+  "red pages 5R/7.5R V2-8 C1-8": [
+   1.6,
+   3.39,
+   4.8
+  ],
+  "high chroma 10R-5Y C8-14": [
+   1.24,
+   3.69,
+   5.0
+  ],
+  "dark V1-2.5 soil hues C1-4": [
+   2.78,
+   5.22,
+   12.2
+  ],
+  "light V8.5-9.5 7.5YR-5Y C1-4": [
+   2.04,
+   2.53,
+   3.1
+  ],
+  "redox conc. 2.5YR-10YR V3-7 C6-8": [
+   0.7,
+   1.23,
+   1.4
+  ],
+  "all chromatic aqp rows": [
+   1.99,
+   5.42,
+   21.1
+  ],
+  "MI typical (10R-5Y, V2-8, C1-8)": [
+   1.08,
+   2.2,
+   4.2
+  ],
+  "MI gley (10Y-5G C1-4, 10G-5PB C1-2; V2-8)": [
+   1.06,
+   2.6,
+   3.7
+  ],
+  "MI red pages 5R/7.5R V2-8 C1-8": [
+   1.52,
+   2.91,
+   4.7
+  ],
+  "MI high chroma 10R-5Y C8-14": [
+   1.24,
+   3.59,
+   5.1
+  ],
+  "MI dark V1-2.5 soil hues C1-4": [
+   2.2,
+   4.03,
+   6.1
+  ],
+  "MI light V8.5-9.5 7.5YR-5Y C1-4": [
+   1.9,
+   2.71,
+   2.9
+  ],
+  "MI redox conc. 2.5YR-10YR V3-7 C6-8": [
+   0.71,
+   1.33,
+   1.6
+  ],
+  "MI all chromatic aqp rows": [
+   1.89,
+   5.2,
+   22.4
+  ],
+  "MI OSD-weighted mean dE00": 0.719,
+  "MI OSD-weighted p95 dE00": 1.58,
+  "OSD-weighted mean dE00": 0.801,
+  "OSD-weighted p95 dE00": 1.5,
+  "vs renotation typical": [
+   1.08,
+   2.19,
+   4.2
+  ],
+  "vs renotation all C<=16": [
+   1.68,
+   4.15,
+   13.7
+  ],
+  "CIE76 typical mean": 1.53,
+  "CIE76 all mean": 3.9
+ },
+ {
+  "model": "M4a polynomial 20 anchors x 5 coeffs (fit C<=12)",
+  "bytes": [
+   1471,
+   580
+  ],
+  "extra": "200 numbers",
+  "typical (10R-5Y, V2-8, C1-8)": [
+   0.66,
+   1.36,
+   3.9
+  ],
+  "gley (10Y-5G C1-4, 10G-5PB C1-2; V2-8)": [
+   0.88,
+   2.07,
+   4.0
+  ],
+  "red pages 5R/7.5R V2-8 C1-8": [
+   1.16,
+   1.96,
+   4.2
+  ],
+  "high chroma 10R-5Y C8-14": [
+   0.75,
+   2.04,
+   4.7
+  ],
+  "dark V1-2.5 soil hues C1-4": [
+   1.67,
+   3.18,
+   10.5
+  ],
+  "light V8.5-9.5 7.5YR-5Y C1-4": [
+   1.17,
+   2.07,
+   2.7
+  ],
+  "redox conc. 2.5YR-10YR V3-7 C6-8": [
+   0.62,
+   1.19,
+   2.0
+  ],
+  "all chromatic aqp rows": [
+   1.64,
+   4.68,
+   45.2
+  ],
+  "MI typical (10R-5Y, V2-8, C1-8)": [
+   0.5,
+   1.22,
+   2.1
+  ],
+  "MI gley (10Y-5G C1-4, 10G-5PB C1-2; V2-8)": [
+   0.58,
+   1.4,
+   2.1
+  ],
+  "MI red pages 5R/7.5R V2-8 C1-8": [
+   1.0,
+   1.78,
+   2.7
+  ],
+  "MI high chroma 10R-5Y C8-14": [
+   0.66,
+   1.85,
+   3.7
+  ],
+  "MI dark V1-2.5 soil hues C1-4": [
+   0.84,
+   1.82,
+   2.3
+  ],
+  "MI light V8.5-9.5 7.5YR-5Y C1-4": [
+   0.97,
+   1.69,
+   1.9
+  ],
+  "MI redox conc. 2.5YR-10YR V3-7 C6-8": [
+   0.52,
+   1.14,
+   1.9
+  ],
+  "MI all chromatic aqp rows": [
+   1.51,
+   4.68,
+   44.8
+  ],
+  "MI OSD-weighted mean dE00": 0.511,
+  "MI OSD-weighted p95 dE00": 1.28,
+  "OSD-weighted mean dE00": 0.579,
+  "OSD-weighted p95 dE00": 1.06,
+  "vs renotation typical": [
+   0.5,
+   1.24,
+   1.9
+  ],
+  "vs renotation all C<=16": [
+   0.69,
+   1.75,
+   4.2
+  ],
+  "CIE76 typical mean": 0.98,
+  "CIE76 all mean": 3.89
+ },
+ {
+  "model": "M4b polynomial 40 hues x 5 coeffs (fit C<=12)",
+  "bytes": [
+   2976,
+   1136
+  ],
+  "extra": "400 numbers",
+  "typical (10R-5Y, V2-8, C1-8)": [
+   0.65,
+   1.32,
+   3.9
+  ],
+  "gley (10Y-5G C1-4, 10G-5PB C1-2; V2-8)": [
+   0.87,
+   2.04,
+   4.0
+  ],
+  "red pages 5R/7.5R V2-8 C1-8": [
+   1.21,
+   2.18,
+   4.2
+  ],
+  "high chroma 10R-5Y C8-14": [
+   0.73,
+   2.04,
+   4.7
+  ],
+  "dark V1-2.5 soil hues C1-4": [
+   1.65,
+   3.01,
+   11.1
+  ],
+  "light V8.5-9.5 7.5YR-5Y C1-4": [
+   1.15,
+   2.09,
+   2.7
+  ],
+  "redox conc. 2.5YR-10YR V3-7 C6-8": [
+   0.59,
+   1.22,
+   2.0
+  ],
+  "all chromatic aqp rows": [
+   1.62,
+   4.65,
+   44.6
+  ],
+  "MI typical (10R-5Y, V2-8, C1-8)": [
+   0.47,
+   1.17,
+   2.4
+  ],
+  "MI gley (10Y-5G C1-4, 10G-5PB C1-2; V2-8)": [
+   0.57,
+   1.33,
+   2.1
+  ],
+  "MI red pages 5R/7.5R V2-8 C1-8": [
+   1.07,
+   1.96,
+   2.6
+  ],
+  "MI high chroma 10R-5Y C8-14": [
+   0.64,
+   1.85,
+   3.7
+  ],
+  "MI dark V1-2.5 soil hues C1-4": [
+   0.81,
+   1.8,
+   2.2
+  ],
+  "MI light V8.5-9.5 7.5YR-5Y C1-4": [
+   0.93,
+   1.86,
+   1.9
+  ],
+  "MI redox conc. 2.5YR-10YR V3-7 C6-8": [
+   0.49,
+   1.16,
+   1.9
+  ],
+  "MI all chromatic aqp rows": [
+   1.48,
+   4.65,
+   44.3
+  ],
+  "MI OSD-weighted mean dE00": 0.451,
+  "MI OSD-weighted p95 dE00": 1.24,
+  "OSD-weighted mean dE00": 0.552,
+  "OSD-weighted p95 dE00": 1.03,
+  "vs renotation typical": [
+   0.48,
+   1.16,
+   1.9
+  ],
+  "vs renotation all C<=16": [
+   0.64,
+   1.69,
+   4.2
+  ],
+  "CIE76 typical mean": 0.95,
+  "CIE76 all mean": 3.85
+ },
+ {
+  "model": "M4c polynomial 20 anchors x 6 coeffs (fit C<=12)",
+  "bytes": [
+   1774,
+   694
+  ],
+  "extra": "240 numbers",
+  "typical (10R-5Y, V2-8, C1-8)": [
+   0.64,
+   1.27,
+   3.9
+  ],
+  "gley (10Y-5G C1-4, 10G-5PB C1-2; V2-8)": [
+   0.9,
+   2.11,
+   4.0
+  ],
+  "red pages 5R/7.5R V2-8 C1-8": [
+   0.8,
+   1.34,
+   3.9
+  ],
+  "high chroma 10R-5Y C8-14": [
+   0.59,
+   1.47,
+   2.9
+  ],
+  "dark V1-2.5 soil hues C1-4": [
+   1.58,
+   3.21,
+   11.0
+  ],
+  "light V8.5-9.5 7.5YR-5Y C1-4": [
+   0.96,
+   1.58,
+   2.3
+  ],
+  "redox conc. 2.5YR-10YR V3-7 C6-8": [
+   0.5,
+   0.82,
+   1.2
+  ],
+  "all chromatic aqp rows": [
+   1.62,
+   4.84,
+   45.3
+  ],
+  "MI typical (10R-5Y, V2-8, C1-8)": [
+   0.45,
+   1.1,
+   1.6
+  ],
+  "MI gley (10Y-5G C1-4, 10G-5PB C1-2; V2-8)": [
+   0.57,
+   1.32,
+   2.5
+  ],
+  "MI red pages 5R/7.5R V2-8 C1-8": [
+   0.61,
+   1.25,
+   1.9
+  ],
+  "MI high chroma 10R-5Y C8-14": [
+   0.47,
+   1.22,
+   2.4
+  ],
+  "MI dark V1-2.5 soil hues C1-4": [
+   0.88,
+   1.78,
+   2.5
+  ],
+  "MI light V8.5-9.5 7.5YR-5Y C1-4": [
+   0.7,
+   1.21,
+   1.6
+  ],
+  "MI redox conc. 2.5YR-10YR V3-7 C6-8": [
+   0.41,
+   0.89,
+   1.2
+  ],
+  "MI all chromatic aqp rows": [
+   1.47,
+   4.86,
+   45.2
+  ],
+  "MI OSD-weighted mean dE00": 0.496,
+  "MI OSD-weighted p95 dE00": 1.22,
+  "OSD-weighted mean dE00": 0.572,
+  "OSD-weighted p95 dE00": 1.04,
+  "vs renotation typical": [
+   0.46,
+   1.03,
+   1.4
+  ],
+  "vs renotation all C<=16": [
+   0.56,
+   1.43,
+   4.8
+  ],
+  "CIE76 typical mean": 0.89,
+  "CIE76 all mean": 3.86
+ },
+ {
+  "model": "M4c polynomial 20 anchors x 8 coeffs (fit C<=12)",
+  "bytes": [
+   2348,
+   845
+  ],
+  "extra": "320 numbers",
+  "typical (10R-5Y, V2-8, C1-8)": [
+   0.6,
+   1.21,
+   3.9
+  ],
+  "gley (10Y-5G C1-4, 10G-5PB C1-2; V2-8)": [
+   0.94,
+   2.53,
+   4.2
+  ],
+  "red pages 5R/7.5R V2-8 C1-8": [
+   0.76,
+   1.34,
+   3.9
+  ],
+  "high chroma 10R-5Y C8-14": [
+   0.57,
+   1.46,
+   2.6
+  ],
+  "dark V1-2.5 soil hues C1-4": [
+   1.69,
+   3.51,
+   11.1
+  ],
+  "light V8.5-9.5 7.5YR-5Y C1-4": [
+   0.76,
+   1.53,
+   1.8
+  ],
+  "redox conc. 2.5YR-10YR V3-7 C6-8": [
+   0.47,
+   0.82,
+   1.1
+  ],
+  "all chromatic aqp rows": [
+   2.27,
+   7.99,
+   50.1
+  ],
+  "MI typical (10R-5Y, V2-8, C1-8)": [
+   0.42,
+   0.96,
+   1.4
+  ],
+  "MI gley (10Y-5G C1-4, 10G-5PB C1-2; V2-8)": [
+   0.59,
+   1.62,
+   2.5
+  ],
+  "MI red pages 5R/7.5R V2-8 C1-8": [
+   0.53,
+   1.14,
+   2.0
+  ],
+  "MI high chroma 10R-5Y C8-14": [
+   0.43,
+   1.16,
+   2.0
+  ],
+  "MI dark V1-2.5 soil hues C1-4": [
+   0.93,
+   1.98,
+   2.5
+  ],
+  "MI light V8.5-9.5 7.5YR-5Y C1-4": [
+   0.42,
+   0.9,
+   1.1
+  ],
+  "MI redox conc. 2.5YR-10YR V3-7 C6-8": [
+   0.39,
+   0.83,
+   1.1
+  ],
+  "MI all chromatic aqp rows": [
+   2.11,
+   8.22,
+   49.7
+  ],
+  "MI OSD-weighted mean dE00": 0.368,
+  "MI OSD-weighted p95 dE00": 0.77,
+  "OSD-weighted mean dE00": 0.508,
+  "OSD-weighted p95 dE00": 1.06,
+  "vs renotation typical": [
+   0.41,
+   0.97,
+   1.4
+  ],
+  "vs renotation all C<=16": [
+   0.52,
+   1.43,
+   4.4
+  ],
+  "CIE76 typical mean": 0.87,
+  "CIE76 all mean": 5.79
+ },
+ {
+  "model": "M4d polynomial 40 hues x 8 coeffs (fit C<=12)",
+  "bytes": [
+   4719,
+   1639
+  ],
+  "extra": "640 numbers",
+  "typical (10R-5Y, V2-8, C1-8)": [
+   0.57,
+   1.21,
+   3.9
+  ],
+  "gley (10Y-5G C1-4, 10G-5PB C1-2; V2-8)": [
+   0.93,
+   2.41,
+   4.2
+  ],
+  "red pages 5R/7.5R V2-8 C1-8": [
+   0.76,
+   1.36,
+   3.9
+  ],
+  "high chroma 10R-5Y C8-14": [
+   0.55,
+   1.39,
+   2.6
+  ],
+  "dark V1-2.5 soil hues C1-4": [
+   1.69,
+   3.51,
+   11.1
+  ],
+  "light V8.5-9.5 7.5YR-5Y C1-4": [
+   0.72,
+   1.43,
+   1.8
+  ],
+  "redox conc. 2.5YR-10YR V3-7 C6-8": [
+   0.44,
+   0.82,
+   1.0
+  ],
+  "all chromatic aqp rows": [
+   2.25,
+   8.17,
+   50.8
+  ],
+  "MI typical (10R-5Y, V2-8, C1-8)": [
+   0.38,
+   0.98,
+   1.7
+  ],
+  "MI gley (10Y-5G C1-4, 10G-5PB C1-2; V2-8)": [
+   0.59,
+   1.57,
+   2.5
+  ],
+  "MI red pages 5R/7.5R V2-8 C1-8": [
+   0.54,
+   1.1,
+   1.9
+  ],
+  "MI high chroma 10R-5Y C8-14": [
+   0.4,
+   1.15,
+   1.8
+  ],
+  "MI dark V1-2.5 soil hues C1-4": [
+   0.9,
+   2.07,
+   2.5
+  ],
+  "MI light V8.5-9.5 7.5YR-5Y C1-4": [
+   0.36,
+   0.76,
+   0.9
+  ],
+  "MI redox conc. 2.5YR-10YR V3-7 C6-8": [
+   0.32,
+   0.84,
+   1.2
+  ],
+  "MI all chromatic aqp rows": [
+   2.09,
+   8.34,
+   50.4
+  ],
+  "MI OSD-weighted mean dE00": 0.361,
+  "MI OSD-weighted p95 dE00": 0.78,
+  "OSD-weighted mean dE00": 0.491,
+  "OSD-weighted p95 dE00": 1.06,
+  "vs renotation typical": [
+   0.36,
+   0.93,
+   1.4
+  ],
+  "vs renotation all C<=16": [
+   0.46,
+   1.29,
+   4.0
+  ],
+  "CIE76 typical mean": 0.83,
+  "CIE76 all mean": 5.81
+ },
+ {
+  "model": "M1e M1b nodes stored as int8 (a/C, b/C step 0.05)",
+  "bytes": [
+   3733,
+   null
+  ],
+  "extra": "2800 int8 -> base64",
+  "typical (10R-5Y, V2-8, C1-8)": [
+   0.69,
+   1.76,
+   3.0
+  ],
+  "gley (10Y-5G C1-4, 10G-5PB C1-2; V2-8)": [
+   0.72,
+   1.81,
+   3.2
+  ],
+  "red pages 5R/7.5R V2-8 C1-8": [
+   0.55,
+   0.89,
+   3.3
+  ],
+  "high chroma 10R-5Y C8-14": [
+   0.66,
+   2.14,
+   2.8
+  ],
+  "dark V1-2.5 soil hues C1-4": [
+   1.32,
+   2.35,
+   10.0
+  ],
+  "light V8.5-9.5 7.5YR-5Y C1-4": [
+   1.83,
+   3.39,
+   3.7
+  ],
+  "redox conc. 2.5YR-10YR V3-7 C6-8": [
+   0.36,
+   0.56,
+   0.6
+  ],
+  "all chromatic aqp rows": [
+   0.95,
+   2.89,
+   17.1
+  ],
+  "MI typical (10R-5Y, V2-8, C1-8)": [
+   0.46,
+   1.59,
+   2.3
+  ],
+  "MI gley (10Y-5G C1-4, 10G-5PB C1-2; V2-8)": [
+   0.33,
+   1.45,
+   2.3
+  ],
+  "MI red pages 5R/7.5R V2-8 C1-8": [
+   0.22,
+   0.73,
+   1.2
+  ],
+  "MI high chroma 10R-5Y C8-14": [
+   0.49,
+   2.02,
+   2.6
+  ],
+  "MI dark V1-2.5 soil hues C1-4": [
+   0.27,
+   0.69,
+   1.5
+  ],
+  "MI light V8.5-9.5 7.5YR-5Y C1-4": [
+   1.59,
+   2.87,
+   3.2
+  ],
+  "MI redox conc. 2.5YR-10YR V3-7 C6-8": [
+   0.25,
+   0.59,
+   0.9
+  ],
+  "MI all chromatic aqp rows": [
+   0.71,
+   2.68,
+   17.0
+  ],
+  "MI OSD-weighted mean dE00": 0.442,
+  "MI OSD-weighted p95 dE00": 1.28,
+  "OSD-weighted mean dE00": 0.572,
+  "OSD-weighted p95 dE00": 1.09,
+  "vs renotation typical": [
+   0.49,
+   1.76,
+   2.1
+  ],
+  "vs renotation all C<=16": [
+   0.43,
+   1.73,
+   3.6
+  ],
+  "CIE76 typical mean": 1.19,
+  "CIE76 all mean": 2.04
+ },
+ {
+  "model": "M1c(fixed) M1b nodes, polar (LCh) hue blend",
+  "bytes": [
+   14108,
+   5340
+  ],
+  "extra": "",
+  "typical (10R-5Y, V2-8, C1-8)": [
+   0.49,
+   0.98,
+   3.0
+  ],
+  "gley (10Y-5G C1-4, 10G-5PB C1-2; V2-8)": [
+   0.6,
+   1.46,
+   3.2
+  ],
+  "red pages 5R/7.5R V2-8 C1-8": [
+   0.55,
+   0.96,
+   3.3
+  ],
+  "high chroma 10R-5Y C8-14": [
+   0.4,
+   1.02,
+   2.5
+  ],
+  "dark V1-2.5 soil hues C1-4": [
+   1.35,
+   2.43,
+   10.0
+  ],
+  "light V8.5-9.5 7.5YR-5Y C1-4": [
+   0.56,
+   1.36,
+   1.8
+  ],
+  "redox conc. 2.5YR-10YR V3-7 C6-8": [
+   0.35,
+   0.61,
+   0.8
+  ],
+  "all chromatic aqp rows": [
+   0.85,
+   2.69,
+   17.1
+  ],
+  "MI typical (10R-5Y, V2-8, C1-8)": [
+   0.2,
+   0.71,
+   1.3
+  ],
+  "MI gley (10Y-5G C1-4, 10G-5PB C1-2; V2-8)": [
+   0.19,
+   0.65,
+   1.3
+  ],
+  "MI red pages 5R/7.5R V2-8 C1-8": [
+   0.22,
+   0.49,
+   0.8
+  ],
+  "MI high chroma 10R-5Y C8-14": [
+   0.21,
+   0.6,
+   1.0
+  ],
+  "MI dark V1-2.5 soil hues C1-4": [
+   0.27,
+   0.76,
+   1.5
+  ],
+  "MI light V8.5-9.5 7.5YR-5Y C1-4": [
+   0.22,
+   0.74,
+   1.1
+  ],
+  "MI redox conc. 2.5YR-10YR V3-7 C6-8": [
+   0.19,
+   0.56,
+   0.8
+  ],
+  "MI all chromatic aqp rows": [
+   0.6,
+   2.38,
+   17.0
+  ],
+  "MI OSD-weighted mean dE00": 0.176,
+  "MI OSD-weighted p95 dE00": 0.68,
+  "OSD-weighted mean dE00": 0.44,
+  "OSD-weighted p95 dE00": 0.79,
+  "vs renotation typical": [
+   0.18,
+   0.64,
+   0.9
+  ],
+  "vs renotation all C<=16": [
+   0.29,
+   0.85,
+   4.5
+  ],
+  "CIE76 typical mean": 0.7,
+  "CIE76 all mean": 1.74
+ },
+ {
+  "model": "M1f 20 anchors x V1-10 x C{2,4,8,12,16}, LS",
+  "bytes": [
+   9981,
+   3840
+  ],
+  "extra": "2000 numbers",
+  "typical (10R-5Y, V2-8, C1-8)": [
+   0.5,
+   0.96,
+   3.0
+  ],
+  "gley (10Y-5G C1-4, 10G-5PB C1-2; V2-8)": [
+   0.6,
+   1.46,
+   3.2
+  ],
+  "red pages 5R/7.5R V2-8 C1-8": [
+   0.56,
+   0.94,
+   3.3
+  ],
+  "high chroma 10R-5Y C8-14": [
+   0.39,
+   0.99,
+   2.9
+  ],
+  "dark V1-2.5 soil hues C1-4": [
+   1.35,
+   2.35,
+   10.0
+  ],
+  "light V8.5-9.5 7.5YR-5Y C1-4": [
+   0.59,
+   1.29,
+   1.8
+  ],
+  "redox conc. 2.5YR-10YR V3-7 C6-8": [
+   0.36,
+   0.58,
+   0.8
+  ],
+  "all chromatic aqp rows": [
+   0.82,
+   2.63,
+   16.8
+  ],
+  "MI typical (10R-5Y, V2-8, C1-8)": [
+   0.24,
+   0.71,
+   1.3
+  ],
+  "MI gley (10Y-5G C1-4, 10G-5PB C1-2; V2-8)": [
+   0.19,
+   0.65,
+   1.3
+  ],
+  "MI red pages 5R/7.5R V2-8 C1-8": [
+   0.24,
+   0.64,
+   1.2
+  ],
+  "MI high chroma 10R-5Y C8-14": [
+   0.21,
+   0.57,
+   0.9
+  ],
+  "MI dark V1-2.5 soil hues C1-4": [
+   0.27,
+   0.73,
+   1.5
+  ],
+  "MI light V8.5-9.5 7.5YR-5Y C1-4": [
+   0.15,
+   0.47,
+   0.8
+  ],
+  "MI redox conc. 2.5YR-10YR V3-7 C6-8": [
+   0.25,
+   0.71,
+   0.8
+  ],
+  "MI all chromatic aqp rows": [
+   0.58,
+   2.18,
+   16.7
+  ],
+  "MI OSD-weighted mean dE00": 0.229,
+  "MI OSD-weighted p95 dE00": 0.88,
+  "OSD-weighted mean dE00": 0.46,
+  "OSD-weighted p95 dE00": 0.79,
+  "vs renotation typical": [
+   0.23,
+   0.72,
+   1.3
+  ],
+  "vs renotation all C<=16": [
+   0.29,
+   0.77,
+   3.2
+  ],
+  "CIE76 typical mean": 0.7,
+  "CIE76 all mean": 1.66
+ },
+ {
+  "model": "M1g 20 anchors x V1-10 x C{2,4,6,8,12,16} LS, rounded to 0.25",
+  "bytes": [
+   12619,
+   4049
+  ],
+  "extra": "2400 numbers; delta-coded max|d|=148 steps -> ~4800 chars (gz~1843)",
+  "typical (10R-5Y, V2-8, C1-8)": [
+   0.49,
+   0.96,
+   3.0
+  ],
+  "gley (10Y-5G C1-4, 10G-5PB C1-2; V2-8)": [
+   0.62,
+   1.46,
+   3.2
+  ],
+  "red pages 5R/7.5R V2-8 C1-8": [
+   0.55,
+   0.89,
+   3.3
+  ],
+  "high chroma 10R-5Y C8-14": [
+   0.4,
+   0.98,
+   2.9
+  ],
+  "dark V1-2.5 soil hues C1-4": [
+   1.32,
+   2.32,
+   10.0
+  ],
+  "light V8.5-9.5 7.5YR-5Y C1-4": [
+   0.59,
+   1.29,
+   1.8
+  ],
+  "redox conc. 2.5YR-10YR V3-7 C6-8": [
+   0.35,
+   0.58,
+   0.6
+  ],
+  "all chromatic aqp rows": [
+   0.82,
+   2.64,
+   16.4
+  ],
+  "MI typical (10R-5Y, V2-8, C1-8)": [
+   0.22,
+   0.68,
+   1.3
+  ],
+  "MI gley (10Y-5G C1-4, 10G-5PB C1-2; V2-8)": [
+   0.23,
+   0.69,
+   1.3
+  ],
+  "MI red pages 5R/7.5R V2-8 C1-8": [
+   0.22,
+   0.67,
+   1.2
+  ],
+  "MI high chroma 10R-5Y C8-14": [
+   0.21,
+   0.57,
+   0.9
+  ],
+  "MI dark V1-2.5 soil hues C1-4": [
+   0.26,
+   0.78,
+   1.5
+  ],
+  "MI light V8.5-9.5 7.5YR-5Y C1-4": [
+   0.18,
+   0.47,
+   0.8
+  ],
+  "MI redox conc. 2.5YR-10YR V3-7 C6-8": [
+   0.23,
+   0.55,
+   0.7
+  ],
+  "MI all chromatic aqp rows": [
+   0.58,
+   2.2,
+   16.3
+  ],
+  "MI OSD-weighted mean dE00": 0.24,
+  "MI OSD-weighted p95 dE00": 0.88,
+  "OSD-weighted mean dE00": 0.429,
+  "OSD-weighted p95 dE00": 0.79,
+  "vs renotation typical": [
+   0.22,
+   0.68,
+   1.3
+  ],
+  "vs renotation all C<=16": [
+   0.28,
+   0.77,
+   3.2
+  ],
+  "CIE76 typical mean": 0.67,
+  "CIE76 all mean": 1.67
+ },
+ {
+  "model": "M1g 20 anchors x V1-10 x C{2,4,6,8,12,16} LS, rounded to 0.5",
+  "bytes": [
+   10168,
+   3422
+  ],
+  "extra": "2400 numbers; delta-coded max|d|=74 steps -> ~4800 chars (gz~1780)",
+  "typical (10R-5Y, V2-8, C1-8)": [
+   0.49,
+   0.93,
+   3.0
+  ],
+  "gley (10Y-5G C1-4, 10G-5PB C1-2; V2-8)": [
+   0.62,
+   1.46,
+   3.2
+  ],
+  "red pages 5R/7.5R V2-8 C1-8": [
+   0.57,
+   0.95,
+   3.3
+  ],
+  "high chroma 10R-5Y C8-14": [
+   0.39,
+   0.99,
+   2.9
+  ],
+  "dark V1-2.5 soil hues C1-4": [
+   1.32,
+   2.43,
+   10.0
+  ],
+  "light V8.5-9.5 7.5YR-5Y C1-4": [
+   0.57,
+   1.28,
+   1.8
+  ],
+  "redox conc. 2.5YR-10YR V3-7 C6-8": [
+   0.36,
+   0.58,
+   0.6
+  ],
+  "all chromatic aqp rows": [
+   0.82,
+   2.61,
+   16.4
+  ],
+  "MI typical (10R-5Y, V2-8, C1-8)": [
+   0.24,
+   0.74,
+   1.3
+  ],
+  "MI gley (10Y-5G C1-4, 10G-5PB C1-2; V2-8)": [
+   0.25,
+   0.71,
+   1.3
+  ],
+  "MI red pages 5R/7.5R V2-8 C1-8": [
+   0.26,
+   0.74,
+   1.3
+  ],
+  "MI high chroma 10R-5Y C8-14": [
+   0.21,
+   0.56,
+   0.9
+  ],
+  "MI dark V1-2.5 soil hues C1-4": [
+   0.29,
+   0.8,
+   1.5
+  ],
+  "MI light V8.5-9.5 7.5YR-5Y C1-4": [
+   0.16,
+   0.62,
+   0.8
+  ],
+  "MI redox conc. 2.5YR-10YR V3-7 C6-8": [
+   0.25,
+   0.59,
+   0.8
+  ],
+  "MI all chromatic aqp rows": [
+   0.58,
+   2.19,
+   16.3
+  ],
+  "MI OSD-weighted mean dE00": 0.245,
+  "MI OSD-weighted p95 dE00": 0.8,
+  "OSD-weighted mean dE00": 0.48,
+  "OSD-weighted p95 dE00": 0.87,
+  "vs renotation typical": [
+   0.23,
+   0.69,
+   1.3
+  ],
+  "vs renotation all C<=16": [
+   0.3,
+   0.78,
+   3.2
+  ],
+  "CIE76 typical mean": 0.68,
+  "CIE76 all mean": 1.66
+ },
+ {
+  "model": "M1g 20 anchors x V1-10 x C{2,4,6,8,12,16} LS, rounded to 1.0",
+  "bytes": [
+   7708,
+   2793
+  ],
+  "extra": "2400 numbers; delta-coded max|d|=37 steps -> ~2400 chars (gz~1514)",
+  "typical (10R-5Y, V2-8, C1-8)": [
+   0.53,
+   0.99,
+   3.1
+  ],
+  "gley (10Y-5G C1-4, 10G-5PB C1-2; V2-8)": [
+   0.69,
+   1.58,
+   2.8
+  ],
+  "red pages 5R/7.5R V2-8 C1-8": [
+   0.6,
+   0.95,
+   3.3
+  ],
+  "high chroma 10R-5Y C8-14": [
+   0.41,
+   1.05,
+   3.2
+  ],
+  "dark V1-2.5 soil hues C1-4": [
+   1.36,
+   2.43,
+   10.6
+  ],
+  "light V8.5-9.5 7.5YR-5Y C1-4": [
+   0.59,
+   1.36,
+   1.8
+  ],
+  "redox conc. 2.5YR-10YR V3-7 C6-8": [
+   0.4,
+   0.6,
+   0.8
+  ],
+  "all chromatic aqp rows": [
+   0.83,
+   2.58,
+   16.8
+  ],
+  "MI typical (10R-5Y, V2-8, C1-8)": [
+   0.3,
+   0.81,
+   1.5
+  ],
+  "MI gley (10Y-5G C1-4, 10G-5PB C1-2; V2-8)": [
+   0.38,
+   0.94,
+   1.7
+  ],
+  "MI red pages 5R/7.5R V2-8 C1-8": [
+   0.32,
+   0.79,
+   1.0
+  ],
+  "MI high chroma 10R-5Y C8-14": [
+   0.23,
+   0.62,
+   1.1
+  ],
+  "MI dark V1-2.5 soil hues C1-4": [
+   0.39,
+   0.81,
+   1.5
+  ],
+  "MI light V8.5-9.5 7.5YR-5Y C1-4": [
+   0.25,
+   0.87,
+   1.2
+  ],
+  "MI redox conc. 2.5YR-10YR V3-7 C6-8": [
+   0.27,
+   0.64,
+   0.8
+  ],
+  "MI all chromatic aqp rows": [
+   0.6,
+   2.17,
+   16.7
+  ],
+  "MI OSD-weighted mean dE00": 0.361,
+  "MI OSD-weighted p95 dE00": 1.05,
+  "OSD-weighted mean dE00": 0.488,
+  "OSD-weighted p95 dE00": 0.95,
+  "vs renotation typical": [
+   0.32,
+   0.82,
+   1.3
+  ],
+  "vs renotation all C<=16": [
+   0.34,
+   0.85,
+   3.6
+  ],
+  "CIE76 typical mean": 0.72,
+  "CIE76 all mean": 1.68
+ },
+ {
+  "model": "M1g 20 anchors x V1-10 x C{2,4,6,8,12,16} LS polar, rounded to 0.25",
+  "bytes": [
+   12619,
+   4049
+  ],
+  "extra": "2400 numbers; delta-coded max|d|=148 steps -> ~4800 chars (gz~1843)",
+  "typical (10R-5Y, V2-8, C1-8)": [
+   0.49,
+   1.0,
+   3.0
+  ],
+  "gley (10Y-5G C1-4, 10G-5PB C1-2; V2-8)": [
+   0.62,
+   1.46,
+   3.2
+  ],
+  "red pages 5R/7.5R V2-8 C1-8": [
+   0.55,
+   0.96,
+   3.3
+  ],
+  "high chroma 10R-5Y C8-14": [
+   0.41,
+   1.02,
+   2.9
+  ],
+  "dark V1-2.5 soil hues C1-4": [
+   1.35,
+   2.32,
+   10.0
+  ],
+  "light V8.5-9.5 7.5YR-5Y C1-4": [
+   0.58,
+   1.4,
+   1.8
+  ],
+  "redox conc. 2.5YR-10YR V3-7 C6-8": [
+   0.35,
+   0.61,
+   0.8
+  ],
+  "all chromatic aqp rows": [
+   0.85,
+   2.74,
+   16.8
+  ],
+  "MI typical (10R-5Y, V2-8, C1-8)": [
+   0.22,
+   0.72,
+   1.3
+  ],
+  "MI gley (10Y-5G C1-4, 10G-5PB C1-2; V2-8)": [
+   0.23,
+   0.69,
+   1.3
+  ],
+  "MI red pages 5R/7.5R V2-8 C1-8": [
+   0.21,
+   0.51,
+   0.8
+  ],
+  "MI high chroma 10R-5Y C8-14": [
+   0.23,
+   0.61,
+   1.0
+  ],
+  "MI dark V1-2.5 soil hues C1-4": [
+   0.29,
+   0.84,
+   1.5
+  ],
+  "MI light V8.5-9.5 7.5YR-5Y C1-4": [
+   0.23,
+   0.65,
+   1.0
+  ],
+  "MI redox conc. 2.5YR-10YR V3-7 C6-8": [
+   0.2,
+   0.53,
+   0.7
+  ],
+  "MI all chromatic aqp rows": [
+   0.61,
+   2.33,
+   16.7
+  ],
+  "MI OSD-weighted mean dE00": 0.22,
+  "MI OSD-weighted p95 dE00": 0.88,
+  "OSD-weighted mean dE00": 0.424,
+  "OSD-weighted p95 dE00": 0.81,
+  "vs renotation typical": [
+   0.21,
+   0.69,
+   1.3
+  ],
+  "vs renotation all C<=16": [
+   0.31,
+   0.85,
+   4.2
+  ],
+  "CIE76 typical mean": 0.71,
+  "CIE76 all mean": 1.74
+ },
+ {
+  "model": "M1g 20 anchors x V1-10 x C{2,4,6,8,12,16} LS polar, rounded to 0.5",
+  "bytes": [
+   10168,
+   3422
+  ],
+  "extra": "2400 numbers; delta-coded max|d|=74 steps -> ~4800 chars (gz~1780)",
+  "typical (10R-5Y, V2-8, C1-8)": [
+   0.5,
+   0.96,
+   3.0
+  ],
+  "gley (10Y-5G C1-4, 10G-5PB C1-2; V2-8)": [
+   0.62,
+   1.46,
+   3.2
+  ],
+  "red pages 5R/7.5R V2-8 C1-8": [
+   0.57,
+   1.05,
+   3.3
+  ],
+  "high chroma 10R-5Y C8-14": [
+   0.41,
+   1.07,
+   2.9
+  ],
+  "dark V1-2.5 soil hues C1-4": [
+   1.34,
+   2.43,
+   10.0
+  ],
+  "light V8.5-9.5 7.5YR-5Y C1-4": [
+   0.58,
+   1.4,
+   1.8
+  ],
+  "redox conc. 2.5YR-10YR V3-7 C6-8": [
+   0.37,
+   0.61,
+   0.8
+  ],
+  "all chromatic aqp rows": [
+   0.85,
+   2.71,
+   17.1
+  ],
+  "MI typical (10R-5Y, V2-8, C1-8)": [
+   0.24,
+   0.75,
+   1.5
+  ],
+  "MI gley (10Y-5G C1-4, 10G-5PB C1-2; V2-8)": [
+   0.25,
+   0.71,
+   1.3
+  ],
+  "MI red pages 5R/7.5R V2-8 C1-8": [
+   0.26,
+   0.58,
+   1.0
+  ],
+  "MI high chroma 10R-5Y C8-14": [
+   0.24,
+   0.62,
+   1.1
+  ],
+  "MI dark V1-2.5 soil hues C1-4": [
+   0.31,
+   0.86,
+   1.5
+  ],
+  "MI light V8.5-9.5 7.5YR-5Y C1-4": [
+   0.26,
+   0.75,
+   1.1
+  ],
+  "MI redox conc. 2.5YR-10YR V3-7 C6-8": [
+   0.23,
+   0.56,
+   0.8
+  ],
+  "MI all chromatic aqp rows": [
+   0.61,
+   2.31,
+   17.0
+  ],
+  "MI OSD-weighted mean dE00": 0.219,
+  "MI OSD-weighted p95 dE00": 0.8,
+  "OSD-weighted mean dE00": 0.472,
+  "OSD-weighted p95 dE00": 0.87,
+  "vs renotation typical": [
+   0.21,
+   0.63,
+   1.3
+  ],
+  "vs renotation all C<=16": [
+   0.31,
+   0.87,
+   4.2
+  ],
+  "CIE76 typical mean": 0.71,
+  "CIE76 all mean": 1.73
+ },
+ {
+  "model": "M1g 20 anchors x V1-10 x C{2,4,6,8,12,16} LS polar, rounded to 1.0",
+  "bytes": [
+   7708,
+   2793
+  ],
+  "extra": "2400 numbers; delta-coded max|d|=37 steps -> ~2400 chars (gz~1514)",
+  "typical (10R-5Y, V2-8, C1-8)": [
+   0.54,
+   1.03,
+   3.1
+  ],
+  "gley (10Y-5G C1-4, 10G-5PB C1-2; V2-8)": [
+   0.69,
+   1.58,
+   2.8
+  ],
+  "red pages 5R/7.5R V2-8 C1-8": [
+   0.6,
+   1.0,
+   3.3
+  ],
+  "high chroma 10R-5Y C8-14": [
+   0.43,
+   1.05,
+   3.2
+  ],
+  "dark V1-2.5 soil hues C1-4": [
+   1.37,
+   2.43,
+   10.6
+  ],
+  "light V8.5-9.5 7.5YR-5Y C1-4": [
+   0.62,
+   1.47,
+   1.8
+  ],
+  "redox conc. 2.5YR-10YR V3-7 C6-8": [
+   0.39,
+   0.66,
+   0.8
+  ],
+  "all chromatic aqp rows": [
+   0.86,
+   2.65,
+   17.1
+  ],
+  "MI typical (10R-5Y, V2-8, C1-8)": [
+   0.3,
+   0.82,
+   1.5
+  ],
+  "MI gley (10Y-5G C1-4, 10G-5PB C1-2; V2-8)": [
+   0.38,
+   0.94,
+   1.7
+  ],
+  "MI red pages 5R/7.5R V2-8 C1-8": [
+   0.32,
+   0.7,
+   1.0
+  ],
+  "MI high chroma 10R-5Y C8-14": [
+   0.26,
+   0.66,
+   1.1
+  ],
+  "MI dark V1-2.5 soil hues C1-4": [
+   0.39,
+   0.81,
+   1.5
+  ],
+  "MI light V8.5-9.5 7.5YR-5Y C1-4": [
+   0.35,
+   1.06,
+   1.2
+  ],
+  "MI redox conc. 2.5YR-10YR V3-7 C6-8": [
+   0.25,
+   0.66,
+   0.8
+  ],
+  "MI all chromatic aqp rows": [
+   0.63,
+   2.28,
+   17.0
+  ],
+  "MI OSD-weighted mean dE00": 0.328,
+  "MI OSD-weighted p95 dE00": 1.23,
+  "OSD-weighted mean dE00": 0.485,
+  "OSD-weighted p95 dE00": 0.95,
+  "vs renotation typical": [
+   0.32,
+   0.83,
+   1.3
+  ],
+  "vs renotation all C<=16": [
+   0.36,
+   0.92,
+   5.1
+  ],
+  "CIE76 typical mean": 0.75,
+  "CIE76 all mean": 1.75
+ },
+ {
+  "model": "M4e = M4c-8 + linear chroma extrapolation above C12",
+  "bytes": [
+   2348,
+   845
+  ],
+  "extra": "320 numbers",
+  "typical (10R-5Y, V2-8, C1-8)": [
+   0.6,
+   1.21,
+   3.9
+  ],
+  "gley (10Y-5G C1-4, 10G-5PB C1-2; V2-8)": [
+   0.94,
+   2.53,
+   4.2
+  ],
+  "red pages 5R/7.5R V2-8 C1-8": [
+   0.76,
+   1.34,
+   3.9
+  ],
+  "high chroma 10R-5Y C8-14": [
+   0.59,
+   1.5,
+   2.6
+  ],
+  "dark V1-2.5 soil hues C1-4": [
+   1.69,
+   3.51,
+   11.1
+  ],
+  "light V8.5-9.5 7.5YR-5Y C1-4": [
+   0.76,
+   1.53,
+   1.8
+  ],
+  "redox conc. 2.5YR-10YR V3-7 C6-8": [
+   0.47,
+   0.82,
+   1.1
+  ],
+  "all chromatic aqp rows": [
+   1.49,
+   5.69,
+   22.3
+  ],
+  "MI typical (10R-5Y, V2-8, C1-8)": [
+   0.42,
+   0.96,
+   1.4
+  ],
+  "MI gley (10Y-5G C1-4, 10G-5PB C1-2; V2-8)": [
+   0.59,
+   1.62,
+   2.5
+  ],
+  "MI red pages 5R/7.5R V2-8 C1-8": [
+   0.53,
+   1.14,
+   2.0
+  ],
+  "MI high chroma 10R-5Y C8-14": [
+   0.45,
+   1.2,
+   2.2
+  ],
+  "MI dark V1-2.5 soil hues C1-4": [
+   0.93,
+   1.98,
+   2.5
+  ],
+  "MI light V8.5-9.5 7.5YR-5Y C1-4": [
+   0.42,
+   0.9,
+   1.1
+  ],
+  "MI redox conc. 2.5YR-10YR V3-7 C6-8": [
+   0.39,
+   0.83,
+   1.1
+  ],
+  "MI all chromatic aqp rows": [
+   1.29,
+   5.52,
+   22.4
+  ],
+  "MI OSD-weighted mean dE00": 0.368,
+  "MI OSD-weighted p95 dE00": 0.77,
+  "OSD-weighted mean dE00": 0.508,
+  "OSD-weighted p95 dE00": 1.06,
+  "vs renotation typical": [
+   0.41,
+   0.97,
+   1.4
+  ],
+  "vs renotation all C<=16": [
+   0.55,
+   1.54,
+   4.9
+  ],
+  "CIE76 typical mean": 0.87,
+  "CIE76 all mean": 3.22
+ },
+ {
+  "model": "M4f = M4c-6 + linear chroma extrapolation above C12",
+  "bytes": [
+   1774,
+   694
+  ],
+  "extra": "240 numbers",
+  "typical (10R-5Y, V2-8, C1-8)": [
+   0.64,
+   1.27,
+   3.9
+  ],
+  "gley (10Y-5G C1-4, 10G-5PB C1-2; V2-8)": [
+   0.9,
+   2.11,
+   4.0
+  ],
+  "red pages 5R/7.5R V2-8 C1-8": [
+   0.8,
+   1.34,
+   3.9
+  ],
+  "high chroma 10R-5Y C8-14": [
+   0.61,
+   1.52,
+   2.9
+  ],
+  "dark V1-2.5 soil hues C1-4": [
+   1.58,
+   3.21,
+   11.0
+  ],
+  "light V8.5-9.5 7.5YR-5Y C1-4": [
+   0.96,
+   1.58,
+   2.3
+  ],
+  "redox conc. 2.5YR-10YR V3-7 C6-8": [
+   0.5,
+   0.82,
+   1.2
+  ],
+  "all chromatic aqp rows": [
+   1.49,
+   5.62,
+   22.3
+  ],
+  "MI typical (10R-5Y, V2-8, C1-8)": [
+   0.45,
+   1.1,
+   1.6
+  ],
+  "MI gley (10Y-5G C1-4, 10G-5PB C1-2; V2-8)": [
+   0.57,
+   1.32,
+   2.5
+  ],
+  "MI red pages 5R/7.5R V2-8 C1-8": [
+   0.61,
+   1.25,
+   1.9
+  ],
+  "MI high chroma 10R-5Y C8-14": [
+   0.49,
+   1.32,
+   2.0
+  ],
+  "MI dark V1-2.5 soil hues C1-4": [
+   0.88,
+   1.78,
+   2.5
+  ],
+  "MI light V8.5-9.5 7.5YR-5Y C1-4": [
+   0.7,
+   1.21,
+   1.6
+  ],
+  "MI redox conc. 2.5YR-10YR V3-7 C6-8": [
+   0.41,
+   0.89,
+   1.2
+  ],
+  "MI all chromatic aqp rows": [
+   1.3,
+   5.45,
+   22.4
+  ],
+  "MI OSD-weighted mean dE00": 0.496,
+  "MI OSD-weighted p95 dE00": 1.22,
+  "OSD-weighted mean dE00": 0.572,
+  "OSD-weighted p95 dE00": 1.04,
+  "vs renotation typical": [
+   0.46,
+   1.03,
+   1.4
+  ],
+  "vs renotation all C<=16": [
+   0.58,
+   1.57,
+   4.9
+  ],
+  "CIE76 typical mean": 0.89,
+  "CIE76 all mean": 3.2
+ },
+ {
+  "model": "M6 hex LUT of soil-book chips (munsellinterpol) + M4e fallback",
+  "bytes": [
+   4188,
+   null
+  ],
+  "extra": "460 chips x 3 bytes base64 + M4e coeffs",
+  "typical (10R-5Y, V2-8, C1-8)": [
+   0.52,
+   1.11,
+   2.6
+  ],
+  "gley (10Y-5G C1-4, 10G-5PB C1-2; V2-8)": [
+   0.76,
+   1.81,
+   2.8
+  ],
+  "red pages 5R/7.5R V2-8 C1-8": [
+   0.57,
+   1.22,
+   3.0
+  ],
+  "high chroma 10R-5Y C8-14": [
+   0.58,
+   1.5,
+   2.6
+  ],
+  "dark V1-2.5 soil hues C1-4": [
+   1.55,
+   2.77,
+   11.1
+  ],
+  "light V8.5-9.5 7.5YR-5Y C1-4": [
+   0.7,
+   1.53,
+   1.8
+  ],
+  "redox conc. 2.5YR-10YR V3-7 C6-8": [
+   0.37,
+   0.81,
+   1.0
+  ],
+  "all chromatic aqp rows": [
+   1.48,
+   5.69,
+   22.3
+  ],
+  "MI typical (10R-5Y, V2-8, C1-8)": [
+   0.19,
+   0.83,
+   1.4
+  ],
+  "MI gley (10Y-5G C1-4, 10G-5PB C1-2; V2-8)": [
+   0.34,
+   1.35,
+   2.5
+  ],
+  "MI red pages 5R/7.5R V2-8 C1-8": [
+   0.15,
+   0.72,
+   1.3
+  ],
+  "MI high chroma 10R-5Y C8-14": [
+   0.43,
+   1.2,
+   2.2
+  ],
+  "MI dark V1-2.5 soil hues C1-4": [
+   0.69,
+   1.84,
+   2.5
+  ],
+  "MI light V8.5-9.5 7.5YR-5Y C1-4": [
+   0.29,
+   0.75,
+   0.9
+  ],
+  "MI redox conc. 2.5YR-10YR V3-7 C6-8": [
+   0.19,
+   0.77,
+   0.9
+  ],
+  "MI all chromatic aqp rows": [
+   1.27,
+   5.52,
+   22.4
+  ],
+  "MI OSD-weighted mean dE00": 0.001,
+  "MI OSD-weighted p95 dE00": 0.0,
+  "OSD-weighted mean dE00": 0.431,
+  "OSD-weighted p95 dE00": 0.79,
+  "vs renotation typical": [
+   0.13,
+   0.71,
+   1.1
+  ],
+  "vs renotation all C<=16": [
+   0.52,
+   1.54,
+   4.9
+  ],
+  "CIE76 typical mean": 0.74,
+  "CIE76 all mean": 3.2
+ }
+]
