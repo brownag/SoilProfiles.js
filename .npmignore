@@ -4,6 +4,9 @@ tests/
 examples/
 .development/
 .claude/
+scripts/
+planning/
+docs/research/
 
 # Build artifacts and bundled outputs
 SoilProfiles.js
