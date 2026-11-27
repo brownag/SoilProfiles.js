@@ -1,3 +1,5 @@
+import { readFileSync } from 'fs';
+import path from 'path';
 import { munsellToHex, isMunsellValid } from '../src/core/munsell';
 
 /**
@@ -43,21 +45,28 @@ describe('Munsell Color Conversion', () => {
       expect(munsellToHex('invalid', 5, 6)).toBeNull();
       expect(munsellToHex('R5', 5, 6)).toBeNull();
       expect(munsellToHex('', 5, 6)).toBeNull();
+      expect(munsellToHex('5XX', 5, 6)).toBeNull();
+      expect(munsellToHex('0YR', 5, 6)).toBeNull();
+      expect(munsellToHex('12YR', 5, 6)).toBeNull();
     });
 
     it('should return null for undefined parameters', () => {
       expect(munsellToHex(undefined, 5, 6)).toBeNull();
       expect(munsellToHex('5R', undefined, 6)).toBeNull();
       expect(munsellToHex('5R', 5, undefined)).toBeNull();
+      expect(munsellToHex('N', undefined, 0)).toBeNull();
     });
 
     it('should return null for invalid value range', () => {
       expect(munsellToHex('5R', -1, 6)).toBeNull();
       expect(munsellToHex('5R', 11, 6)).toBeNull();
+      expect(munsellToHex('N', -1, 0)).toBeNull();
+      expect(munsellToHex('N', 11, 0)).toBeNull();
     });
 
     it('should return null for negative chroma', () => {
       expect(munsellToHex('5R', 5, -1)).toBeNull();
+      expect(munsellToHex('N', 4, -1)).toBeNull();
     });
 
     it('should handle common soil hues', () => {
@@ -107,6 +116,88 @@ describe('Munsell Color Conversion', () => {
       // "N 2/-" (dash chroma)
       const res4 = munsellToHex('n', 2, '-'); // also test case insensitivity
       expect(res4).toBe(res1);
+
+      // "N 4/0"
+      const resN4 = munsellToHex('N', 4, 0);
+      expect(resN4).toMatch(/^#[0-9a-f]{6}$/i);
+      expect(resN4!.slice(1, 3)).toBe(resN4!.slice(3, 5));
+      expect(resN4!.slice(3, 5)).toBe(resN4!.slice(5, 7));
+      expect(resN4).not.toBe(res1);
+    });
+
+    it('should return distinct hex colors for 10YR 4/2 and 5YR 4/2', () => {
+      const yr10 = munsellToHex('10YR', 4, 2);
+      const yr5 = munsellToHex('5YR', 4, 2);
+      expect(yr10).toMatch(/^#[0-9a-f]{6}$/i);
+      expect(yr5).toMatch(/^#[0-9a-f]{6}$/i);
+      expect(yr10).not.toBe(yr5);
+    });
+
+    it('should produce distinct valid hex colors across common soil hues at identical value/chroma', () => {
+      const soilHues = ['2.5YR', '5YR', '7.5YR', '10YR', '2.5Y', '5Y'];
+
+      for (const [value, chroma] of [
+        [4, 2],
+        [5, 6],
+      ]) {
+        const results = soilHues.map((hue) => munsellToHex(hue, value, chroma));
+        for (const hex of results) {
+          expect(hex).toMatch(/^#[0-9a-f]{6}$/i);
+        }
+        expect(new Set(results).size).toBe(soilHues.length);
+      }
+    });
+
+    it('should closely approximate reference sRGB values across common soil hues', () => {
+      // Reference sRGB (0-1) for 2.5YR-5Y, value 2-8, chroma 1-8: [hue, value, chroma, r, g, b]
+      const dataPath = path.join(__dirname, 'fixtures', 'munsell-reference-soil.json');
+      const samples: [string, number, number, number, number, number][] = JSON.parse(
+        readFileSync(dataPath, 'utf8')
+      );
+
+      expect(samples.length).toBe(380);
+
+      let totalChannelError = 0;
+      let maxChannelError = 0;
+      for (const [hue, value, chroma, ...ref] of samples) {
+        const hex = munsellToHex(hue, value, chroma);
+        expect(hex).toMatch(/^#[0-9a-f]{6}$/i);
+        for (let i = 0; i < 3; i++) {
+          const err = Math.abs(parseInt(hex!.slice(1 + 2 * i, 3 + 2 * i), 16) / 255 - ref[i]);
+          totalChannelError += err;
+          maxChannelError = Math.max(maxChannelError, err);
+        }
+      }
+
+      // Continuous interpolation measures ~1.2/255 mean and ~8.5/255 max; the old
+      // discrete-hue lookup measured ~5.1/255 mean and ~37.5/255 max.
+      expect(totalChannelError / (samples.length * 3)).toBeLessThanOrEqual(3 / 255);
+      expect(maxChannelError).toBeLessThanOrEqual(12 / 255);
+    });
+
+    it('should place neutral grays on the same value scale as chromatic colors', () => {
+      // N v/0 should match the lightness of near-neutral (chroma 1) renotation chips at the
+      // same value. aqp's measured neutral chips (e.g. N 5/ at L* 35) are deliberately not
+      // used: they sit ~1 value step darker than the renotation scale for N 2-8.
+      const samples: [string, number, number, number, number, number][] = JSON.parse(
+        readFileSync(path.join(__dirname, 'fixtures', 'munsell-reference-soil.json'), 'utf8')
+      );
+
+      let previous = -1;
+      for (const value of [2, 2.5, 3, 4, 5, 6, 7, 8]) {
+        const chroma1 = samples.filter(([, v, c]) => v === value && c === 1);
+        expect(chroma1.length).toBeGreaterThan(0);
+        const expected =
+          chroma1.reduce((sum, [, , , r, g, b]) => sum + (r + g + b) / 3, 0) / chroma1.length;
+
+        const hex = munsellToHex('N', value, 0)!;
+        expect(hex).toMatch(/^#([0-9a-f]{2})\1\1$/i);
+        const gray = parseInt(hex.slice(1, 3), 16) / 255;
+
+        expect(Math.abs(gray - expected)).toBeLessThanOrEqual(5 / 255);
+        expect(gray).toBeGreaterThan(previous);
+        previous = gray;
+      }
     });
   });
 

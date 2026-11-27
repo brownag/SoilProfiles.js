@@ -1,3 +1,4 @@
+import { execFileSync } from 'child_process';
 import { existsSync, readFileSync } from 'fs';
 import path from 'path';
 import {
@@ -84,6 +85,33 @@ describe('package metadata', () => {
         expect(typeof parseDelimitedProfile).toBe('function');
         expect(typeof parseOSDJson).toBe('function');
         expect(typeof parseSimpleJson).toBe('function');
+    });
+
+    it('exports munsellToHex in the built ESM bundle with distinct colors for 10YR 4/2 and 5YR 4/2', () => {
+        const esmBundlePath = path.join(packageRoot, 'dist', 'index.esm.js');
+        if (!existsSync(esmBundlePath)) {
+            // dist/ not yet compiled (e.g. running jest before build)
+            return;
+        }
+
+        const script = [
+            `const b64 = require('fs').readFileSync(${JSON.stringify(esmBundlePath)}).toString('base64');`,
+            `import('data:text/javascript;base64,' + b64).then((m) => {`,
+            `  const tenYr = m.munsellToHex('10YR', 4, 2);`,
+            `  const fiveYr = m.munsellToHex('5YR', 4, 2);`,
+            `  console.log(JSON.stringify({ tenYr, fiveYr }));`,
+            `});`
+        ].join(' ');
+
+        const stdout = execFileSync(process.execPath, ['-e', script], {
+            cwd: packageRoot,
+            encoding: 'utf8'
+        }).trim();
+
+        const parsed = JSON.parse(stdout) as { tenYr: string | null; fiveYr: string | null };
+        expect(parsed.tenYr).toMatch(/^#[0-9a-f]{6}$/i);
+        expect(parsed.fiveYr).toMatch(/^#[0-9a-f]{6}$/i);
+        expect(parsed.tenYr).not.toBe(parsed.fiveYr);
     });
 });
 
