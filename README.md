@@ -415,6 +415,7 @@ The library provides conversion functions to translate Munsell colors into hex v
   - Accepts formats like `"N 2/0"`, `"N 2/"`, or `"N 2/-"`.
   - Missing, empty, or dash (`"-"`) chroma values for neutral hues default to `0`, producing pure shades of gray.
   - Supports decimal values (e.g., `"N 2.5/"` or `"N 10/"` for near-white).
+- **Accuracy**: conversion uses a compact fitted approximation, not a full colour-management pipeline. Against the munsellinterpol reference, typical soil colours (10R–5Y, values 2–8, chromas 1–8) average about 0.4 ΔE00 (CIEDE2000), which is below what most people can see. Very dark and low-value gley colours can reach about 2.5 ΔE00. See [docs/research/munsell-approximation.md](docs/research/munsell-approximation.md).
 
 ### Rendering Functions
 
