@@ -37,6 +37,7 @@ Implement the value-dependent polynomial Munsell model (candidate M4e: 20 hue an
 - **2026-11-27 — Value scale**: Keep the Newhall 1943 polynomial and fix only the comment (from the user's request).
 - **2026-11-27 — Internal API**: `munsellToRgbApprox(string)`, `hueData` and `interpolateLab` have no callers outside `src/core/munsell.ts` and are not re-exported from `src/index.ts` or `src/core.ts`, so they are removed. `parseMunsellHueAngle` stays exported. (Orchestrator default, from recon.)
 - **2026-11-27 — Models**: Workers run on `haiku`; escalate to `sonnet` per the escalation ladder.
+- **2026-11-27 — 3.1.2 white tolerance (orchestrator amendment)**: the spec's 0.01 white-point bound was wrong for the `mlib` constants (white b = −0.0104 in the reference itself). Loosened to 0.02 and added an `mlib` parity vector. This is a spec fix, not a worker retry.
 - **2026-11-27 — Planning artifacts**: Track `EXECUTION_PLAN_3.md`, `PROMPT_TEMPLATE_3.md` and `STATE_3.md` with separate `docs(planning):` commits. `planning/tasks/*.todo.md` stays untracked.
 
 ---
@@ -49,6 +50,7 @@ Implement the value-dependent polynomial Munsell model (candidate M4e: 20 hue an
   `#000000 #101010 #1d1d1d #272727 #313131 #3d3d3d #484848 #555555 #616161 #6e6e6e #7b7b7b #888888 #959595 #a2a2a2 #afafaf #bdbdbd #cacaca #d8d8d8 #e5e5e5 #f3f3f3 #ffffff`.
 - **Dark-branch hazard**: `munsellToRgbApprox` computes `L = 116·Y^(1/3) − 16` unconditionally, but `labToXyz.f_inv` uses the linear branch below `6/29`. For Y < 0.008856 (V < about 1), those two disagree. The `cbrt` shortcut must keep this behaviour: set `fy = Math.cbrt(Y)` and keep `f_inv` for x, y and z exactly as it is. Do **not** set `yr = Y` directly, or N 0.5 changes.
 - **Worktree hazard**: `scripts/mi_xyY.csv` is git-ignored, so it is **absent in worktrees**. Pass the main checkout's absolute path: `/home/andrew/workspace/SoilProfiles.js/scripts/mi_xyY.csv`. `scripts/candidate_M4e.json`, `scripts/mlib.py` and `scripts/exp1.py` are tracked.
+- **Agent worktree base hazard** (found in Wave 1): `isolation: worktree` branches from `main`, not the current branch. The orchestrator resets each worker worktree to the feature-branch HEAD before work starts. Jest also collects `.claude/worktrees/**`, so full suites run only when no worktrees are live.
 - **Python**: numpy 2.5.3 and scipy 1.18.1 are installed. R's `munsellinterpol` is **not** installed, so do not try to regenerate `mi_xyY.csv`.
 - **`python3 -I` hazard**: `-I` drops the script directory from `sys.path`, so `import mlib` fails. The generator must do `sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))` before importing `mlib`.
 - **Jest**: `testMatch: ['**/tests/**/*.test.ts']`, so `tests/helpers/*.ts` (no `.test.`) is not collected as a suite. ts-jest, jsdom.
@@ -112,7 +114,8 @@ Files are pairwise disjoint within each wave. Wave 2 tasks run in separate workt
     - (50, 0, 0) vs (50, −1, 2) → 2.3669
     - (50, 2.5, 0) vs (73, 25, −18) → 27.1492
     - (60.2574, −34.0099, 36.2677) vs (60.4626, −34.1751, 39.4387) → 1.2644
-  - Also assert `hexToLab('#ffffff')` ≈ [100, 0, 0] within 0.01 and `hexToLab('#000000')` = [0, 0, 0].
+  - Also assert `hexToLab('#ffffff')` ≈ [100, 0, 0] within 0.02 and `hexToLab('#000000')` ≈ [0, 0, 0] (`toBeCloseTo(0, 10)`). *(Amended 2026-11-27: `mlib.rgb_to_lab` itself gives white b = −0.0104 because the `M_XYZ` row sums do not equal `WP`.)*
+  - Parity with `mlib.rgb_to_lab`: `hexToLab('#664d33')` ≈ [34.7450, 6.8739, 19.4483] within 1e-3.
 - **Anchors**: `scripts/mlib.py` `def de2000` (line ~63) and `def rgb_to_lab` (line ~51).
 - **Reference implementation**: `scripts/mlib.py:de2000`.
 - **Constraints**: no new dependencies; test-only code (nothing under `src/`).
