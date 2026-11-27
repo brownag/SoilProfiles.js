@@ -1,9 +1,13 @@
 """Experiment 1: compare Munsell->sRGB approximation models on soil domains.
 
-usage: python3 -I fit_munsell_models.py <expdir> <aqp_munsell.csv> <all.dat> <osd_colors.csv> <munsell-approx.ts>
+usage: python3 -I fit_munsell_models.py <expdir> <aqp_munsell.csv> <all.dat> <osd_colors.csv> <munsell-approx.ts> [names.csv]
+
+<expdir> holds mi_xyY.csv and receives the outputs. names.csv is optional: a CSV with a `munsell`
+column listing Munsell Soil Color Book chip notations (e.g. exported from NASIS). Without it the
+chip lookup-table (M6) experiment is skipped.
 """
-import sys, csv, math, json, gzip, collections
-sys.path.insert(0, sys.argv[1])
+import os, sys, csv, math, json, gzip, collections
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import numpy as np
 from scipy.sparse import lil_matrix, vstack, identity
 from scipy.sparse.linalg import lsqr
@@ -351,16 +355,19 @@ pc6 = PolyClamp(M.ANCH, B6); pc6.X = PolyB(M.ANCH, B6).fit(train12).X
 results.append(evaluate('M4f = M4c-6 + linear chroma extrapolation above C12', pc6.lab, literal_bytes(pc6.X, 4), f'{pc6.X.size} numbers'))
 
 # hex LUT of Munsell Soil Color Book chips (NASIS name list) baked from munsellinterpol, fallback M4e
-book = set()
-for r in csv.DictReader(open(sys.argv[1] + '/../dl_names/names.csv')):
-    t = r['munsell'].replace('/', ' ').split()
-    if len(t) == 3 and t[0] != 'N': book.add((t[0], float(t[1]), float(t[2])))
-inbook = np.array([(h, v, c) in book for h, v, c in zip(aqpH, aqpV, aqpC)]) & okMI
-cov = wOSD[inbook].sum() / wOSD.sum()
-print('book chips (chromatic):', len(book), ' found in aqp grid:', int(inbook.sum()), ' OSD chromatic coverage: %.4f' % cov)
-lutlab = {(aqpH[i], aqpV[i], aqpC[i]): miLab[i] for i in np.where(inbook)[0]}
-lutfn = lambda h, v, c: tuple(lutlab[(h, v, c)]) if (h, v, c) in lutlab else pc.lab(h, v, c)
-results.append(evaluate('M6 hex LUT of soil-book chips (munsellinterpol) + M4e fallback', lutfn, (int(len(book) * 3 * 4 / 3) + len(literal_bytes(pc.X, 4)) and int(len(book) * 4) + literal_bytes(pc.X, 4)[0], None), f'{len(book)} chips x 3 bytes base64 + M4e coeffs'))
+if len(sys.argv) > 6:
+    book = set()
+    for r in csv.DictReader(open(sys.argv[6])):
+        t = r['munsell'].replace('/', ' ').split()
+        if len(t) == 3 and t[0] != 'N': book.add((t[0], float(t[1]), float(t[2])))
+    inbook = np.array([(h, v, c) in book for h, v, c in zip(aqpH, aqpV, aqpC)]) & okMI
+    cov = wOSD[inbook].sum() / wOSD.sum()
+    print('book chips (chromatic):', len(book), ' found in aqp grid:', int(inbook.sum()), ' OSD chromatic coverage: %.4f' % cov)
+    lutlab = {(aqpH[i], aqpV[i], aqpC[i]): miLab[i] for i in np.where(inbook)[0]}
+    lutfn = lambda h, v, c: tuple(lutlab[(h, v, c)]) if (h, v, c) in lutlab else pc.lab(h, v, c)
+    results.append(evaluate('M6 hex LUT of soil-book chips (munsellinterpol) + M4e fallback', lutfn, (int(len(book) * 3 * 4 / 3) + len(literal_bytes(pc.X, 4)) and int(len(book) * 4) + literal_bytes(pc.X, 4)[0], None), f'{len(book)} chips x 3 bytes base64 + M4e coeffs'))
+else:
+    print('names.csv not given: skipping the soil-book chip lookup-table experiment')
 
 # export candidate coefficient tables for a follow-up TS prototype
 json.dump({'anchors': M.ANCH, 'basis': 'a,b = sum_k coef[k] * [C, C*V, C*V^2, C*V^3, C^2, C^2*V, C^2*V^2, C^3][k]; linear blend between anchors; C>12 -> scale C/12',
