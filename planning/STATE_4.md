@@ -19,8 +19,8 @@
 | gate | — | User picks candidate; holdout bounds set | `done` (hinge, all-points fit) | — | — |
 | 2 | `4.2.1` | Port chosen candidate, allocation-free hot path | `done` | haiku (1 retry) | `65f245f` |
 | 2 | `4.2.2` | Rare bounds 2.0, highC C ≤ 12, holdout test | `done` | haiku | `dbc29f8` (cherry-picked from `778b6d8`) |
-| 3 | `4.3.1` | Commit research report, portable and descriptive | `pending` | | |
-| 3 | `4.3.2` | NEWS 0.3.0 and README accuracy line | `pending` | | |
+| 3 | `4.3.1` | Commit research report, portable and descriptive | `done` | haiku | `689b40c` |
+| 3 | `4.3.2` | NEWS 0.3.0 and README accuracy line | `done` | haiku | `aebdcdd` (cherry-picked from `3650fd7`) |
 
 ## Task Reports
 
@@ -52,3 +52,18 @@
 ## Wave 2 end
 - `make check` (worktrees removed): 9/9 suites, **196/196** tests, smoke ok. Neutral baseline identical.
 - Gotcha: with worktrees present, `npx jest tests/munsell.test.ts` also runs the worktree copies. Use `--testPathIgnorePatterns /.claude/`.
+
+## 4.3.1
+- **Status**: done (one amend to remove orchestration jargon from the doc). **File**: `docs/research/munsell-dark-parity.md`, now tracked: descriptive names, one-line old-label mapping (:59), no `.development/` links, current script names, Recommendation opener pointing to §9, new `## 9. Implemented`.
+- **Commit**: `689b40c` docs(research): add the low-value munsell parity study.
+- **Checks**: acceptance grep matches only the mapping line; 16 relative file links, 0 missing; no measured number in §§1–8 changed.
+- **Corrections**: the hinge is not best on highC. At C ≤ 12 the shape swap scores 0.335/1.176 against the hinge's 0.364/1.227, and §9 says so. The holdout low max is 1.545 (JSON; jest prints 1.544). The input-SHA table keeps the hash from when the report was written.
+
+## 4.3.2
+- **Status**: done. **Files**: `NEWS.md` (accuracy bullet: typical 0.38/1.4, every rare domain ≤ 2.0 at chroma ≤ 12; new holdout bullet saying it is a regression check, not out-of-sample, and that V < 1 is uncalibrated; size 2,510 B) and `README.md:418` ("stay within about 2 ΔE00", no research link).
+- **Commit**: `3650fd7`, cherry-picked to `aebdcdd`.
+- **Tests**: stale-bound grep is empty. After `npm run build`, `npx jest tests/package.test.ts` gives 6/6.
+
+## Orchestration end (2026-11-27)
+- `make check` with no worktrees: 9/9 suites, 196/196 tests, smoke ok. Size, benchmark and neutral results: see "Wave 2 end" (no source change since).
+- Open items for the user: (1) rebase onto `main` after PR #31 merges; (2) the `console.log` lines in `tests/munsell.test.ts` rare/holdout tests (keep or drop); (3) no push or PR without instruction.
