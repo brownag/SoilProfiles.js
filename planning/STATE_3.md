@@ -16,8 +16,8 @@
 |---|---|---|---|---|---|
 | 1 | `3.1.1` | munsellinterpol Lab fixture + generator | `done` | haiku | `49a159c` |
 | 1 | `3.1.2` | CIEDE2000 test helper | `done` | haiku | `05cafc7` |
-| 2 | `3.2.1` | Port M4e polynomial + numeric entry point | `pending` | | |
-| 2 | `3.2.2` | Replace aqp tests with ΔE00 accuracy tests | `pending` | | |
+| 2 | `3.2.1` | Port M4e polynomial + numeric entry point | `done` | haiku | `839b8df` |
+| 2 | `3.2.2` | Replace aqp tests with ΔE00 accuracy tests | `done` | haiku | `c3aa65f` |
 | 3 | `3.3.1` | Numeric call path + memo in `munsellToHex`; drop string parser | `pending` | | |
 
 ## Task Reports
@@ -41,3 +41,22 @@
 ## Wave 1 close
 - `make check` PASS. With `--testPathIgnorePatterns /.claude/`, the full jest run gives 9/9 suites and 187/187 tests (178 baseline + 9). Smoke ok.
 - **Hazard found**: jest `testMatch` also collects `.claude/worktrees/**/tests`, so the full suite must run with no live worktrees (or with `--testPathIgnorePatterns '/.claude/'`). Agent worktrees are created from `main`, not the current branch: reset each one to the feature-branch HEAD before work starts.
+
+## 3.2.1
+- **Status**: done (haiku). Commit `839b8df` (cherry-picked from `baf03e2`).
+- **Files**: `src/utils/munsell-approx.ts` (rewritten, 264 lines; +116/−316).
+- **Tests**: `npx tsc --noEmit` exits 0. `npx jest tests/munsell.test.ts -t '^(?!.*closely approximate).*$'` 18 pass / 1 skipped. Neutral baseline bit-identical. Gzipped size **2,451 B** (baseline 2,529).
+- **ΔE00 (mean/p95/max)**: typical 0.420/0.966/1.434; gley 0.595/1.627/2.546; red 0.535/1.161/2.001; highC 0.451/1.199/2.180; dark 0.933/2.101/2.546; light 0.418/0.911/1.075; redox 0.386/0.831/1.054. The orchestrator reproduced these independently.
+- **Blocked once**: gley/dark max 2.546 (chip 5GY 2/2) was in the (2.5, 2.6] stop band. The user loosened the rare bound to 2.6 (see Decision Log). No code change.
+- **Deviations**: `labToXyz` now takes `fy`; `LabColor`/`ChromaPoint` removed. `COEF_A`/`COEF_B` are `export`ed (not in spec; 3.3.1 makes them module-private).
+- **Discovered**: `scripts/mlib.py`, `bench.ts`, `bench2.ts`, `dump_ts.ts` reference removed symbols (`hueData`, `interpolateLab`). Left as the research record.
+
+## 3.2.2
+- **Status**: done (haiku). Commit `c3aa65f` (cherry-picked from `7b523d0`, which was amended for the 2.6 bound).
+- **Files**: `tests/munsell.test.ts` (imports + `loadInterpolRows` helper at 1-17; tests ~151-212); `tests/fixtures/munsell-reference-soil.json` deleted.
+- **Tests**: against the pre-M4e model in its worktree, 6 expected failures / 19 pass (typical mean 1.116, max 5.117; rare max: gley 3.18, red 5.69, highC 5.08, dark 6.11, light 2.94, redox 1.82). After merge with 3.2.1: 25/25 pass.
+- **Deviations**: none (bound amended by the user decision).
+
+## Wave 2 close
+- Merged on `feat/munsell-polynomial` @ `c3aa65f`. Worktrees removed. `make check` PASS: 9/9 suites, 193/193 tests (187 − 1 aqp test + 7 new), smoke ok.
+- **Follow-up (user request)**: a dark/gley parity research prompt is in `planning/PROMPT_dark_gley_parity.md` (untracked). The residual is a chroma error at V ≤ 2: greens are over-saturated at V2, reds under-saturated at V1; L* is correct.

@@ -31,13 +31,14 @@ Implement the value-dependent polynomial Munsell model (candidate M4e: 20 hue an
 ## Decision Log
 
 - **2026-11-27 — Branch**: PR #30 is merged (`9cd71fc`). Work on `feat/munsell-polynomial`, branched from the latest `main`. The research commit was carried over as `4ded6e9`.
-- **2026-11-27 — Fixture & metric**: Lab fixture + ΔE00 tests. Use 1,331 rows (measured from `mi_xyY.csv` with the domain predicates: highC 481, typical 444, gley 224, dark 132, red 128, light 64, redox 60; rows can carry several tags) covering typical, gley, red-page, high-chroma, dark, light and redox chips, and store D65 Lab. Thresholds: typical mean ≤ 0.5 and max ≤ 2.0; each rare domain max ≤ 2.5.
+- **2026-11-27 — Fixture & metric**: Lab fixture + ΔE00 tests. Use 1,331 rows (measured from `mi_xyY.csv` with the domain predicates: highC 481, typical 444, gley 224, dark 132, red 128, light 64, redox 60; rows can carry several tags) covering typical, gley, red-page, high-chroma, dark, light and redox chips, and store D65 Lab. Thresholds: typical mean ≤ 0.5 and max ≤ 2.0; each rare domain max ≤ 2.6.
 - **2026-11-27 — aqp fixture**: Replace it entirely. Delete `tests/fixtures/munsell-reference-soil.json` and its calibration test. Re-point the neutral-gray test at the new fixture's chroma-1 chips.
 - **2026-11-27 — CPU scope**: Do all of it: numeric path, single-`toString` hex, `cbrt` shortcut, and memoization. Orchestrator default: the memo is a module-level `Map` capped at 4,096 entries and cleared when full.
 - **2026-11-27 — Value scale**: Keep the Newhall 1943 polynomial and fix only the comment (from the user's request).
 - **2026-11-27 — Internal API**: `munsellToRgbApprox(string)`, `hueData` and `interpolateLab` have no callers outside `src/core/munsell.ts` and are not re-exported from `src/index.ts` or `src/core.ts`, so they are removed. `parseMunsellHueAngle` stays exported. (Orchestrator default, from recon.)
 - **2026-11-27 — Models**: Workers run on `haiku`; escalate to `sonnet` per the escalation ladder.
 - **2026-11-27 — 3.1.2 white tolerance (orchestrator amendment)**: the spec's 0.01 white-point bound was wrong for the `mlib` constants (white b = −0.0104 in the reference itself). Loosened to 0.02 and added an `mlib` parity vector. This is a spec fix, not a worker retry.
+- **2026-11-27 — Rare-domain bound (user decision)**: the M4e port measured gley and dark max ΔE00 = 2.546, both from the single chip 5GY 2/2. This matches the research's rounded 2.5. The user chose to loosen the rare-domain max from 2.5 to **2.6** for all six rare domains. Typical bounds are unchanged (mean ≤ 0.5, max ≤ 2.0).
 - **2026-11-27 — Planning artifacts**: Track `EXECUTION_PLAN_3.md`, `PROMPT_TEMPLATE_3.md` and `STATE_3.md` with separate `docs(planning):` commits. `planning/tasks/*.todo.md` stays untracked.
 
 ---
@@ -143,7 +144,7 @@ Files are pairwise disjoint within each wave. Wave 2 tasks run in separate workt
   - `npx tsc --noEmit` exits 0.
   - `npx jest tests/munsell.test.ts -t '^(?!.*closely approximate).*$'` passes. The aqp calibration test is excluded because 3.2.2 deletes it.
   - A `.development/check.ts` run with `npx tsx` prints the neutral baseline string from Recon, **identical**.
-  - The same scratch script loads the 3.1.1 fixture and uses the 3.1.2 helper to print per-domain ΔE00 mean / p95 / max for `munsellToHexApprox`. Required: typical mean ≤ 0.5 and max ≤ 2.0; every rare domain max ≤ 2.5. Report all numbers. If a max is in (2.5, 2.6], stop and report (see Recon).
+  - The same scratch script loads the 3.1.1 fixture and uses the 3.1.2 helper to print per-domain ΔE00 mean / p95 / max for `munsellToHexApprox`. Required: typical mean ≤ 0.5 and max ≤ 2.0; every rare domain max ≤ 2.6. Report all numbers. (Bound loosened from 2.5 by user decision; see Decision Log.)
   - `npx esbuild src/utils/munsell-approx.ts --bundle --format=esm --minify | gzip -9 | wc -c` ≤ 2,529.
   - Delete `.development/`.
 
@@ -156,7 +157,7 @@ Files are pairwise disjoint within each wave. Wave 2 tasks run in separate workt
      - Load `tests/fixtures/munsell-reference-munsellinterpol.json`.
      - For rows tagged `typical`, compute `deltaE2000(hexToLab(munsellToHex(h, v, c)), [L, a, b])`.
      - Assert mean ≤ 0.5 and max ≤ 2.0.
-  3. Add `should stay within ΔE00 2.5 on rare soil colors`. It is table-driven (`it.each` or a loop with a domain label in the failure message) over `gley`, `red`, `highC`, `dark`, `light` and `redox`, asserting max ≤ 2.5 for each.
+  3. Add `should stay within ΔE00 2.6 on rare soil colors`. It is table-driven (`it.each` or a loop with a domain label in the failure message) over `gley`, `red`, `highC`, `dark`, `light` and `redox`, asserting max ≤ 2.6 for each.
   4. Rewrite `should place neutral grays on the same value scale as chromatic colors`:
      - For each value in [2, 2.5, 3, 4, 5, 6, 7, 8] that has `typical` chroma-1 rows in the fixture, take the mean L of those rows.
      - Assert that `munsellToHex('N', v, 0)` is r = g = b, that `|hexToLab(gray)[0] − meanL| ≤ 1.0`, and that L increases strictly with v.
