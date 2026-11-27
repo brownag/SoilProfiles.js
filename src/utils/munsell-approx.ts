@@ -18,7 +18,8 @@ const HUE_ANCHOR_ORDER = [
 ] as const;
 
 // a* and b* polynomial coefficients for each hue anchor (order: HUE_ANCHOR_ORDER), fitted to the
-// Munsell renotation data. See docs/research/munsell-approximation.md; generated from scripts/candidate_M4e.json.
+// Munsell renotation data. See docs/research/munsell-approximation.md.
+// Generated from scripts/munsell-ab-polynomial-coefficients.json.
 // Basis: [C, C*V, C*V^2, C*V^3, C^2, C^2*V, C^2*V^2, C^3].
 const COEF_A: readonly number[][] = [
   [5.196844, 0.406557, -0.162569, 0.010938, -0.103115, 0.014287, 0.000745, 0.000984],

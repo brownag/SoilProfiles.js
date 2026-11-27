@@ -365,7 +365,7 @@ results.append(evaluate('M6 hex LUT of soil-book chips (munsellinterpol) + M4e f
 # export candidate coefficient tables for a follow-up TS prototype
 json.dump({'anchors': M.ANCH, 'basis': 'a,b = sum_k coef[k] * [C, C*V, C*V^2, C*V^3, C^2, C^2*V, C^2*V^2, C^3][k]; linear blend between anchors; C>12 -> scale C/12',
            'coef_a': np.round(pc.X[:, 0].reshape(20, 8), 6).tolist(), 'coef_b': np.round(pc.X[:, 1].reshape(20, 8), 6).tolist()},
-          open(sys.argv[1] + '/candidate_M4e.json', 'w'))
+          open(sys.argv[1] + '/munsell-ab-polynomial-coefficients.json', 'w'))
 gg = Grid(M.ANCH, V10, gC).sample().fit(train)
 json.dump({'anchors': M.ANCH, 'values': V10, 'chromas': gC, 'layout': '[anchor][value][chroma][a,b], C=0 -> (0,0)',
            'nodes': (np.round(gg.X * 2) / 2).reshape(20, 10, len(gC), 2).tolist()}, open(sys.argv[1] + '/candidate_M1g.json', 'w'))

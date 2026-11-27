@@ -227,7 +227,7 @@ Steps 5–6 measure the original value-independent anchor grid, which the librar
    - Regex `\b(N|\d+(?:\.\d+)?(?:YR|GY|BG|PB|RP|R|Y|G|B|P))\s+(\d+(?:\.\d+)?)\s*/\s*(\d+(?:\.\d+)?)?` over each `TYPICAL PEDON.content`, split on `;` for the feature/matrix tag (`osd_colors.py`).
 5. Models and metrics: `python3 -I exp1.py <expdir> aqp_munsell.csv all.dat osd_colors.csv src/utils/munsell-approx.ts` (numpy + scipy). Then `python3 -I table.py exp1_results.json`.
    - The Python port of the current algorithm (`mlib.py`) reproduces the TS hex output exactly for all 10,450 rows.
-   - Candidate coefficient tables are written to `candidate_M4e.json` (20×8×2) and `candidate_M1g.json` (20×10×6×2).
+   - Candidate coefficient tables are written to `munsell-ab-polynomial-coefficients.json` (M4e, 20×8×2; named `candidate_M4e.json` at `4ded6e9`) and `candidate_M1g.json` (20×10×6×2).
 6. Benchmarks (at `4ded6e9` only; the scripts were removed afterwards): `npx --prefix <repo> tsx scripts/bench.ts` and `scripts/bench2.ts` (2–3 M iterations after warm-up).
 7. Bundle size: `npx esbuild src/utils/munsell-approx.ts --bundle --format=esm --minify | gzip -9 | wc -c`.
 
@@ -269,7 +269,7 @@ Accuracy is the typical-domain / OSD-weighted mean ΔE00 against munsellinterpol
 
 **Suggested next step:**
 
-- Port `candidate_M4e.json` (or `candidate_M1g.json`) into a branch of `munsell-approx.ts` behind the existing `munsellToRgbApprox` signature.
+- Port `munsell-ab-polynomial-coefficients.json` (or `candidate_M1g.json`) into a branch of `munsell-approx.ts` behind the existing `munsellToRgbApprox` signature.
 - Generate the munsellinterpol fixture with the R snippet in §6 step 2.
 - Add tests asserting mean ΔE00 ≤ 0.5 on the typical domain and max ≤ 2.5 on each rare domain.
 - Re-measure the module's minified and gzipped size with the esbuild command above.
