@@ -3,11 +3,12 @@
 Behaviour changes:
 * `munsellToHex()` returns different (more accurate) hex colours for chromatic Munsell notations. Neutral grays (`N v/0`) are unchanged.
 * Hue is interpolated continuously between the 20 standard anchors (5R, 10R, … 5RP), so intermediate hues such as 2.5YR and 7.5YR are no longer snapped to a neighbouring anchor.
-* a\*/b\* now depend on Value as well as Hue and Chroma (fitted polynomial model). Against munsellinterpol, typical soil colours (10R–5Y, values 2–8, chromas 1–8) average 0.42 ΔE00 with a maximum of 1.4, down from 1.12 and 5.1. Gley, red, high-chroma, dark, light and redox colours stay within 2.6 ΔE00.
+* a\*/b\* now depend on Value as well as Hue and Chroma (fitted polynomial model). Against munsellinterpol, typical soil colours (10R–5Y, values 2–8, chromas 1–8) average 0.38 ΔE00 with a maximum of 1.4, down from 1.12 and 5.1. Every rare soil-colour domain (gley, red, high-chroma, dark, light and redox) stays within 2.0 ΔE00 (chroma ≤ 12).
+* A hash-selected 20% of the munsellinterpol grid (1,187 points) stays within a mean of 0.5 and a maximum of 2.9 ΔE00. These points are part of the fit, so this is a regression check, not an out-of-sample estimate. Chromatic colours below Value 1 are not calibrated.
 
 Performance:
 * `munsellToHex()` caches up to 4,096 recent results and no longer builds and re-parses an intermediate `"H V/C"` string.
-* The Munsell module is smaller: 2,325 B gzipped, down from 2,529 B.
+* The Munsell module is smaller: 2,510 B gzipped, down from 2,529 B.
 
 Internal:
 * Removed the internal `munsellToRgbApprox()`, `hueData` and `interpolateLab` from `src/utils/munsell-approx.ts`. None of them were exported from the package entry points.
