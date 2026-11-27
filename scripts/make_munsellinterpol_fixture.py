@@ -5,7 +5,7 @@ usage: python3 -I scripts/make_munsellinterpol_fixture.py <mi_xyY.csv> <out.json
 import os, sys, csv, json
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import numpy as np
-import mlib as M
+import munsell_color as M
 
 src, out = sys.argv[1], sys.argv[2]
 rows = list(csv.DictReader(open(src)))
@@ -24,7 +24,7 @@ def xyY_to_lab(x, y, Y):
     return np.array([116 * fy - 16, 500 * (fx - fy), 200 * (fy - fz)])
 
 
-# ---------------------------------------------------------------- domains (verbatim from exp1.py:27-39)
+# ---------------------------------------------------------------- domains (verbatim from fit_munsell_models.py:27-39)
 TYP = {'10R', '2.5YR', '5YR', '7.5YR', '10YR', '2.5Y', '5Y'}
 GLEY1 = {'10Y', '5GY', '10GY', '5G'}
 GLEY2 = {'10G', '5BG', '10BG', '5B', '10B', '5PB'}
@@ -41,7 +41,7 @@ dom = {
 }
 ORDER = ['typical', 'gley', 'red', 'highC', 'dark', 'light', 'redox']
 
-# ---------------------------------------------------------------- reference Lab (exp1.py:57-65 equivalent)
+# ---------------------------------------------------------------- reference Lab (fit_munsell_models.py:57-65 equivalent)
 tags = [[d for d in ORDER if dom[d][i]] for i in range(len(rows))]
 keep = [i for i in range(len(rows)) if tags[i]]
 labs = np.array([xyY_to_lab(X[i], Y_[i], Yl[i] * 1.02568 / 100) for i in range(len(rows))])

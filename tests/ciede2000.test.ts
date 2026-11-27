@@ -28,7 +28,7 @@ describe('hexToLab', () => {
     lab.forEach(v => expect(v).toBeCloseTo(0, 10));
   });
 
-  it('matches mlib.rgb_to_lab parity on #664d33', () => {
+  it('matches munsell_color.rgb_to_lab parity on #664d33', () => {
     const expected = [34.7450, 6.8739, 19.4483];
     const lab = hexToLab('#664d33');
     lab.forEach((v, i) => expect(Math.abs(v - expected[i])).toBeLessThanOrEqual(1e-3));

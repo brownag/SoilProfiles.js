@@ -171,7 +171,7 @@ That is at most about 0.8 ΔE00 (1.5 at 10YR 9.5/2-like colours), or 1–2 hex s
 
 Every model shares the library's L\* (Newhall scale) and clip/round pipeline; only the a\*b\* model changes. Training data is the renotation `all.dat` at V 1–10, C ≤ 16, all 40 hues. Typical-domain chips get 3 times the weight. Bytes are the node or coefficient numbers written as a JS literal (raw / gzip −9), not counting code.
 
-Model labels are run IDs from `scripts/exp1.py`, grouped by family:
+Model labels are run IDs from `scripts/fit_munsell_models.py`, grouped by family:
 - **M0**: the value-independent anchor grid the library used before this study.
 - **M1, M2**: value × chroma node grids.
 - **M4**: per-anchor polynomials in value and chroma.
@@ -213,7 +213,15 @@ The letter is the variant. The library now uses **M4e**, the 8-term polynomial o
 
 The scripts are in `scripts/`. The large reference exports (`aqp_munsell.csv`, `mi_xyY.csv`) and the munsell.js bundle are git-ignored; steps 1–2 regenerate them.
 
-Steps 5–6 measure the original value-independent anchor grid, which the library no longer uses. Run them from a checkout of commit `4ded6e9` (`git worktree add ../munsell-study 4ded6e9`). There, `exp1.py` parses `hueData` from the TS source, and the benchmark scripts are present. The munsellinterpol reference fixture used by the tests is built by `scripts/make_munsellinterpol_fixture.py` from `mi_xyY.csv`.
+Steps 5–6 measure the original value-independent anchor grid, which the library no longer uses. Run them from a checkout of commit `4ded6e9` (`git worktree add ../munsell-study 4ded6e9`). There, the fit script parses `hueData` from the TS source, and the benchmark scripts are present. The scripts were renamed afterwards; at `4ded6e9` they are called:
+- `exp1.py` (now `fit_munsell_models.py`)
+- `mlib.py` (now `munsell_color.py`)
+- `table.py` (now `make_results_table.py`)
+- `exp1_results.json` (now `munsell-model-results.json`)
+- `exp1_table.md` (now `munsell-model-results-table.md`)
+- `exp1_stdout.txt` (now `munsell-model-fit-log.txt`)
+- `candidate_M4e.json` (now `munsell-ab-polynomial-coefficients.json`)
+- `candidate_M1g.json` (now `munsell-ab-grid-coefficients.json`) The munsellinterpol reference fixture used by the tests is built by `scripts/make_munsellinterpol_fixture.py` from `mi_xyY.csv`.
 
 1. Export the reference data:
    - aqp: `Rscript -e 'library(aqp); data(munsell); write.csv(munsell,"aqp_munsell.csv",row.names=FALSE)'`.
@@ -225,9 +233,9 @@ Steps 5–6 measure the original value-independent anchor grid, which the librar
 4. OSD frequencies:
    - `git clone --depth 1 --filter=blob:none --sparse https://github.com/ncss-tech/SoilKnowledgeBase && git sparse-checkout set inst/extdata/OSD`.
    - Regex `\b(N|\d+(?:\.\d+)?(?:YR|GY|BG|PB|RP|R|Y|G|B|P))\s+(\d+(?:\.\d+)?)\s*/\s*(\d+(?:\.\d+)?)?` over each `TYPICAL PEDON.content`, split on `;` for the feature/matrix tag (`osd_colors.py`).
-5. Models and metrics: `python3 -I exp1.py <expdir> aqp_munsell.csv all.dat osd_colors.csv src/utils/munsell-approx.ts` (numpy + scipy). Then `python3 -I table.py exp1_results.json`.
-   - The Python port of the current algorithm (`mlib.py`) reproduces the TS hex output exactly for all 10,450 rows.
-   - Candidate coefficient tables are written to `munsell-ab-polynomial-coefficients.json` (M4e, 20×8×2; named `candidate_M4e.json` at `4ded6e9`) and `candidate_M1g.json` (20×10×6×2).
+5. Models and metrics: `python3 -I fit_munsell_models.py <expdir> aqp_munsell.csv all.dat osd_colors.csv src/utils/munsell-approx.ts` (numpy + scipy). Then `python3 -I make_results_table.py munsell-model-results.json`.
+   - The Python port of the current algorithm (`munsell_color.py`) reproduces the TS hex output exactly for all 10,450 rows.
+   - Candidate coefficient tables are written to `munsell-ab-polynomial-coefficients.json` (M4e, 20×8×2) and `munsell-ab-grid-coefficients.json` (20×10×6×2).
 6. Benchmarks (at `4ded6e9` only; the scripts were removed afterwards): `npx --prefix <repo> tsx scripts/bench.ts` and `scripts/bench2.ts` (2–3 M iterations after warm-up).
 7. Bundle size: `npx esbuild src/utils/munsell-approx.ts --bundle --format=esm --minify | gzip -9 | wc -c`.
 
@@ -269,7 +277,7 @@ Accuracy is the typical-domain / OSD-weighted mean ΔE00 against munsellinterpol
 
 **Suggested next step:**
 
-- Port `munsell-ab-polynomial-coefficients.json` (or `candidate_M1g.json`) into a branch of `munsell-approx.ts` behind the existing `munsellToRgbApprox` signature.
+- Port `munsell-ab-polynomial-coefficients.json` (or `munsell-ab-grid-coefficients.json`) into a branch of `munsell-approx.ts` behind the existing `munsellToRgbApprox` signature.
 - Generate the munsellinterpol fixture with the R snippet in §6 step 2.
 - Add tests asserting mean ΔE00 ≤ 0.5 on the typical domain and max ≤ 2.5 on each rare domain.
 - Re-measure the module's minified and gzipped size with the esbuild command above.

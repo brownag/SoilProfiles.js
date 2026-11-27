@@ -1,6 +1,6 @@
 /**
  * Test-only colour helpers: sRGB hex to CIELAB (D65) and CIEDE2000 colour difference.
- * Ported from scripts/mlib.py (rgb_to_lab, de2000). Not used by src/.
+ * Ported from scripts/munsell_color.py (rgb_to_lab, de2000). Not used by src/.
  */
 
 export type Lab = [number, number, number];

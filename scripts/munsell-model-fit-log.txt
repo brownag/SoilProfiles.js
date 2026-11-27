@@ -1,6 +1,6 @@
-/tmp/claude-1000/-home-andrew-workspace-SoilProfiles-js/3d1d69da-2601-4e31-9f29-cf31a5432436/scratchpad/exp/mlib.py:111: RuntimeWarning: divide by zero encountered in divide
+scripts/munsell_color.py:111: RuntimeWarning: divide by zero encountered in divide
   XYZ = np.stack([x * Y / y, Y, (1 - x - y) * Y / y], -1) @ M_C2D65.T
-/tmp/claude-1000/-home-andrew-workspace-SoilProfiles-js/3d1d69da-2601-4e31-9f29-cf31a5432436/scratchpad/exp/mlib.py:111: RuntimeWarning: invalid value encountered in matmul
+scripts/munsell_color.py:111: RuntimeWarning: invalid value encountered in matmul
   XYZ = np.stack([x * Y / y, Y, (1 - x - y) * Y / y], -1) @ M_C2D65.T
 M0 current (20 anchors x chroma, a*b* value-independent)
 M1a 20 anchors x V1-10 x C{2..12,16}, sampled

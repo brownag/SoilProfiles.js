@@ -1,13 +1,13 @@
 """Experiment 1: compare Munsell->sRGB approximation models on soil domains.
 
-usage: python3 -I exp1.py <expdir> <aqp_munsell.csv> <all.dat> <osd_colors.csv> <munsell-approx.ts>
+usage: python3 -I fit_munsell_models.py <expdir> <aqp_munsell.csv> <all.dat> <osd_colors.csv> <munsell-approx.ts>
 """
 import sys, csv, math, json, gzip, collections
 sys.path.insert(0, sys.argv[1])
 import numpy as np
 from scipy.sparse import lil_matrix, vstack, identity
 from scipy.sparse.linalg import lsqr
-import mlib as M
+import munsell_color as M
 
 aqpH, aqpV, aqpC, aqpRGB, _ = M.load_aqp(sys.argv[2])
 rH, rV, rC, rLab = M.load_renotation(sys.argv[3])
@@ -368,7 +368,7 @@ json.dump({'anchors': M.ANCH, 'basis': 'a,b = sum_k coef[k] * [C, C*V, C*V^2, C*
           open(sys.argv[1] + '/munsell-ab-polynomial-coefficients.json', 'w'))
 gg = Grid(M.ANCH, V10, gC).sample().fit(train)
 json.dump({'anchors': M.ANCH, 'values': V10, 'chromas': gC, 'layout': '[anchor][value][chroma][a,b], C=0 -> (0,0)',
-           'nodes': (np.round(gg.X * 2) / 2).reshape(20, 10, len(gC), 2).tolist()}, open(sys.argv[1] + '/candidate_M1g.json', 'w'))
+           'nodes': (np.round(gg.X * 2) / 2).reshape(20, 10, len(gC), 2).tolist()}, open(sys.argv[1] + '/munsell-ab-grid-coefficients.json', 'w'))
 
 # reference agreement: aqp vs munsellinterpol
 dd = M.de2000(refAQP, refMI)
@@ -381,5 +381,5 @@ for k in ('typical (10R-5Y, V2-8, C1-8)', 'dark V1-2.5 soil hues C1-4', 'gley (1
             dM = r['_dM']; mm = dom[k] & okMI; o = np.argsort(-np.where(mm, dM, -1))[:6]
             print('worstMI', r['model'][:4], k[:12], [(aqpH[i], aqpV[i], aqpC[i], round(float(dM[i]), 2)) for i in o])
 for r in results: r.pop('_dM')
-json.dump(results, open(sys.argv[1] + '/exp1_results.json', 'w'), indent=1)
+json.dump(results, open(sys.argv[1] + '/munsell-model-results.json', 'w'), indent=1)
 
